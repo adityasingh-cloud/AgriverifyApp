@@ -21,24 +21,25 @@ export function News() {
     let isMounted = true;
     const fetchLiveNews = async () => {
       setLoading(true);
-      const catQuery = CATEGORIES.find(c => c.id === activeCategory)?.query || 'agriculture';
+      const catQuery = CATEGORIES.find(c => c.id === activeCategory)?.query || 'agriculture india';
       const apiKey = import.meta.env.VITE_NEWS_API_KEY;
       
       try {
+        // NewsAPI often has issues with CORS on local dev, so we handle it gracefully
         if (!apiKey || apiKey === 'YOUR_NEWS_API_KEY') {
-          throw new Error("NewsAPI key missing. Falling back to mock data.");
+          throw new Error("Missing API Key");
         }
         
-        const response = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(catQuery)}&sortBy=publishedAt&language=en&apiKey=${apiKey}`);
-        if (!response.ok) throw new Error("API Limit Reached or Invalid Key");
+        const response = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(catQuery)}&sortBy=publishedAt&pageSize=15&apiKey=${apiKey}`);
+        if (!response.ok) throw new Error("API Limit");
         
         const data = await response.json();
         
-        if (isMounted && data.articles) {
-          const formatted = data.articles.slice(0, 15).map((article, index) => ({
-            id: index,
-            source: article.source.name || 'NewsAPI',
-            author: article.author || 'Global Desk',
+        if (isMounted && data.articles && data.articles.length > 0) {
+          const formatted = data.articles.map((article, index) => ({
+            id: `api-${index}`,
+            source: article.source.name || 'AgriNews',
+            author: article.author || 'India Desk',
             type: activeCategory,
             time: new Date(article.publishedAt).toLocaleDateString(),
             content: article.title,
@@ -48,19 +49,21 @@ export function News() {
             isBreaking: index === 0
           }));
           setNewsData(formatted);
+        } else {
+          throw new Error("No articles");
         }
       } catch (err) {
-        console.warn(err.message);
-        // Fallback to high-quality mock data if API key fails so production app doesn't break
+        console.warn("NewsAPI Error - Falling back to high-fidelity mock data:", err.message);
         const mockApiData = [
           { id: 1, source: 'Reuters Agri', author: 'Global Desk', type: 'global', time: '10m ago', content: 'Global fertilizer supply chain stabilizes, bringing down prices for urea and DAP by 15% this quarter.', url: '#', readTime: '2m read', isBreaking: true },
           { id: 2, source: 'DD Kisan', author: 'Gov Updates', type: 'subsidies', time: '1h ago', content: 'New PM-Kisan subsidy installments will be released next week. Update your KYC to ensure seamless transfer.', url: '#', readTime: '1m read', isBreaking: false },
           { id: 3, source: 'Times of India', author: 'Market Watch', type: 'market', time: '3h ago', content: 'Wheat prices surge in Northern Mandis due to unseasonal rain forecasts. Farmers advised to harvest early.', url: '#', readTime: '3m read', isBreaking: false },
           { id: 4, source: 'AgriTech Weekly', author: 'TechDesk', type: 'tech', time: '5h ago', content: 'New Drone-as-a-Service launched in Maharashtra for targeted pesticide spraying, cutting costs by 40%.', url: '#', readTime: '5m read', isBreaking: false },
+          { id: 5, source: 'Mandi Bureau', author: 'AgriStat', type: 'market', time: '6h ago', content: 'Rice export restrictions partially lifted; Indian Basmati prices expected to stabilize in international markets.', url: '#', readTime: '4m read', isBreaking: false },
         ];
         if (isMounted) {
-          const categoryFilter = activeCategory === 'all' ? mockApiData : mockApiData.filter(n => n.type === activeCategory || (activeCategory === 'tech' && n.type === 'global'));
-          setNewsData(categoryFilter);
+          const categoryFilter = activeCategory === 'all' ? mockApiData : mockApiData.filter(n => n.type === activeCategory);
+          setNewsData(categoryFilter.length > 0 ? categoryFilter : mockApiData);
         }
       } finally {
         if (isMounted) setLoading(false);

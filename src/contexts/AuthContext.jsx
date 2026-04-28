@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc } from '../firebase';
+import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -16,14 +16,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true);
       if (firebaseUser) {
-        // Fetch user document from Firestore
         const userDoc = await getDoc(doc(usersRef, firebaseUser.uid));
         if (userDoc.exists()) {
           setUser(userDoc.data());
           setupRealtimeListeners(firebaseUser.uid);
         } else {
-          // User exists in Auth but not in Firestore (needs to complete profile)
           setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
           setLoading(false);
         }
@@ -69,35 +68,37 @@ export function AuthProvider({ children }) {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Google Auth Failed", error);
-      // Fallback for demo without valid config
-      completeProfile({ name: 'Guest User', phone: '0000000000', city: 'Demo City' }, 'guest_' + Date.now());
+      alert("Google Sign-In failed. Please try again.");
     }
   };
 
   const completeProfile = async (formData, fallbackUid = null) => {
     const uid = fallbackUid || user?.uid;
+    if (!uid) return;
+
     const finalUser = {
       ...formData,
       uid,
       email: user?.email || '',
       avatar: formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
-      nameLowerCase: formData.name.toLowerCase(), // For case-insensitive search
+      nameLowerCase: formData.name.toLowerCase(),
       isPrivate: false,
+      followersCount: 0,
+      followingCount: 0
     };
     
-    try {
-      await setDoc(doc(usersRef, uid), finalUser, { merge: true });
-    } catch(e) {}
-    
+    await setDoc(doc(usersRef, uid), finalUser, { merge: true });
     setUser(finalUser);
     setupRealtimeListeners(uid);
   };
 
   const logout = () => {
-    signOut(auth);
-    setUser(null);
-    setPosts([]);
-    setFollowing([]);
+    signOut(auth).then(() => {
+      setUser(null);
+      setPosts([]);
+      setFollowing([]);
+      localStorage.removeItem('agriverify_user');
+    });
   };
 
   const updateProfile = async (updates) => {
@@ -115,8 +116,12 @@ export function AuthProvider({ children }) {
   };
 
   const searchUsers = (searchQuery) => {
+    if (!searchQuery.trim()) {
+      setSocialGraph({});
+      return;
+    }
     const searchLower = searchQuery.toLowerCase();
-    const q = query(usersRef, where('nameLowerCase', '>=', searchLower), where('nameLowerCase', '<=', searchLower + 'uf8ff'));
+    const q = query(usersRef, where('nameLowerCase', '>=', searchLower), where('nameLowerCase', '<=', searchLower + '\uf8ff'));
     onSnapshot(q, (snapshot) => {
       const results = {};
       snapshot.docs.forEach(doc => {
@@ -134,7 +139,6 @@ export function AuthProvider({ children }) {
       
       if (isFollowing) {
         await deleteDoc(doc(followersRef, followId));
-        // Update counts
         await updateDoc(doc(usersRef, user.uid), { followingCount: increment(-1) });
         await updateDoc(doc(usersRef, targetId), { followersCount: increment(-1) });
       } else {
@@ -143,7 +147,6 @@ export function AuthProvider({ children }) {
           targetId: targetId,
           createdAt: Date.now()
         });
-        // Update counts
         await updateDoc(doc(usersRef, user.uid), { followingCount: increment(1) });
         await updateDoc(doc(usersRef, targetId), { followersCount: increment(1) });
       }
@@ -160,7 +163,7 @@ export function AuthProvider({ children }) {
         userId: user.uid,
         user: user.name,
         avatar: user.avatar,
-        isPrivate: user.isPrivate || false, // Add privacy flag to post
+        isPrivate: user.isPrivate || false,
         location: user.city ? `${user.city}, ${user.state}` : "India",
         likes: 0,
         createdAt: Date.now()

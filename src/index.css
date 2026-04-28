@@ -9,11 +9,11 @@
     @apply bg-agri-bg text-white font-body;
     margin: 0;
     padding: 0;
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    overflow: hidden; /* Full-screen constraint */
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Keep the shell fixed, but allow inner scrolling */
     overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
