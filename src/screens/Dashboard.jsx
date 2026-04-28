@@ -224,7 +224,78 @@ export function Dashboard() {
                 </div>
               )}
               
-              {/* Other modals can be added here */}
+              {activeModal === 'pest' && (
+                <div>
+                  <h3 className="text-xl font-display font-black text-[#1E5128] mb-2 uppercase tracking-widest">Pest Radar</h3>
+                  <p className="text-[10px] text-[#2D2D2D] opacity-40 font-bold uppercase tracking-widest mb-6">Localized outbreak detection</p>
+                  
+                  {/* Visual Hazard Map */}
+                  <div className="bg-[#F0F7FF] rounded-[24px] p-5 mb-6 relative overflow-hidden h-40 flex items-center justify-center">
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute top-3 left-4 w-20 h-20 rounded-full bg-[#1E6F6B]" />
+                      <div className="absolute bottom-3 right-6 w-14 h-14 rounded-full bg-[#1E5128]" />
+                    </div>
+                    <div className="text-center z-10">
+                      <div className="text-4xl mb-2">🌿</div>
+                      <div className="text-sm font-black text-[#1E5128]">Your Zone: SAFE</div>
+                      <div className="text-[10px] text-[#008C45] font-bold uppercase tracking-widest">0 Active Outbreaks</div>
+                    </div>
+                  </div>
+
+                  {/* Nearby Zones */}
+                  <div className="space-y-3 mb-6">
+                    {[
+                      { zone: 'Ludhiana, PB', status: '⚠️ Low Risk', color: '#F59E0B' },
+                      { zone: 'Ambala, HR', status: '✅ Safe', color: '#008C45' },
+                      { zone: 'Meerut, UP', status: '🚨 Alert', color: '#FF6F61' },
+                    ].map((z, i) => (
+                      <div key={i} className="flex justify-between items-center p-4 bg-[#F0F7FF] rounded-[16px]">
+                        <span className="text-sm font-black text-[#1E5128]">{z.zone}</span>
+                        <span className="text-xs font-black" style={{ color: z.color }}>{z.status}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button onClick={() => setActiveModal(null)} className="w-full bg-[#1E6F6B] text-white py-4 rounded-[16px] font-black uppercase tracking-widest text-xs">
+                    Report an Outbreak
+                  </button>
+                </div>
+              )}
+
+              {activeModal === 'recovery' && (
+                <div>
+                  <h3 className="text-xl font-display font-black text-[#1E5128] mb-2 uppercase tracking-widest">Value Recovery</h3>
+                  <p className="text-[10px] text-[#2D2D2D] opacity-40 font-bold uppercase tracking-widest mb-6">Turn rejected produce into income</p>
+                  
+                  {/* Active Listings */}
+                  <div className="space-y-3 mb-6">
+                    {[
+                      { crop: 'Cracked Wheat', qty: '120 kg', buyer: 'BioFuel Corp', offer: '₹8/kg' },
+                      { crop: 'Broken Rice', qty: '80 kg', buyer: 'Animal Feed Ltd', offer: '₹5/kg' },
+                    ].map((item, i) => (
+                      <div key={i} className="p-4 bg-[#F0F7FF] rounded-[20px] border border-[#1E5128]/5">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="text-sm font-black text-[#1E5128]">{item.crop}</div>
+                          <div className="text-sm font-black text-[#1E6F6B]">{item.offer}</div>
+                        </div>
+                        <div className="flex justify-between">
+                          <div className="text-[10px] text-[#2D2D2D] opacity-40 font-bold">{item.qty}</div>
+                          <div className="text-[10px] font-black text-[#1E5128]">{item.buyer}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add New Listing */}
+                  <div className="p-4 border-2 border-dashed border-[#1E5128]/10 rounded-[20px] text-center mb-5">
+                    <span className="text-[10px] font-black text-[#1E5128] opacity-40 uppercase tracking-widest">+ List New Rejected Batch</span>
+                  </div>
+
+                  <button onClick={() => setActiveModal(null)} className="w-full bg-[#1E5128] text-white py-4 rounded-[16px] font-black uppercase tracking-widest text-xs">
+                    Browse Processing Units
+                  </button>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
