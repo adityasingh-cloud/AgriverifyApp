@@ -18,6 +18,23 @@ export function Dashboard() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const hour = new Date().getHours();
+  let greetingKey = 'good_morning';
+  let greetingEmoji = '🌤️';
+  if (hour >= 12 && hour < 17) {
+    greetingKey = 'good_afternoon';
+    greetingEmoji = '☀️';
+  } else if (hour >= 17 || hour < 4) {
+    greetingKey = 'good_night';
+    greetingEmoji = '🌙';
+  }
+
+  // Real stats calculation
+  const totalVerified = scans.length;
+  const avgQuality = scans.length > 0 ? Math.round(scans.reduce((acc, curr) => acc + curr.score, 0) / scans.length) : 0;
+  // Let's assume each scan brings roughly ₹1,500 in value
+  const totalEarned = `₹${(scans.length * 1500).toLocaleString()}`;
+
   const handleVerify = (e) => {
     e.preventDefault();
     if (searchCode.length !== 12) return;
@@ -48,7 +65,7 @@ export function Dashboard() {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 pt-8 relative">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <p className="text-xs text-gray-400 mb-1">{t('good_morning')} 🌤️</p>
+          <p className="text-xs text-gray-400 mb-1">{t(greetingKey)} {greetingEmoji}</p>
           <h1 className="text-2xl font-display font-black text-white">{user?.name || 'Farmer'}</h1>
         </div>
         <div className="relative">
@@ -81,9 +98,9 @@ export function Dashboard() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-agri-green/15 to-agri-green/5 border border-agri-green/20 p-5 flex mb-6">
         <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-agri-green/20 blur-xl" />
         {[
-          [t('total_verified'), "2.4T", "text-agri-green"],
-          [t('avg_quality'), "86%", "text-agri-yellow"],
-          [t('total_earned'), "₹6.2L", "text-blue-400"]
+          [t('total_verified'), totalVerified.toString(), "text-agri-green"],
+          [t('avg_quality'), `${avgQuality}%`, "text-agri-yellow"],
+          [t('total_earned'), totalEarned, "text-blue-400"]
         ].map(([label, val, color], i) => (
           <div key={i} className={`flex-1 text-center ${i < 2 ? 'border-r border-white/10' : ''}`}>
             <div className={`text-xl font-black font-display ${color}`}>{val}</div>

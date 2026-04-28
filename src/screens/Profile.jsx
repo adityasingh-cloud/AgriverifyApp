@@ -1,13 +1,16 @@
-import React, { useRef } from 'react';
-import { motion } from 'framer-motion';
-import { LogOut, Volume2, Globe, Shield, User as UserIcon, Award, Lock, Unlock, Camera } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Volume2, Globe, Shield, User as UserIcon, Award, Lock, Unlock, Camera, X, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
 export function Profile() {
-  const { user, logout, isPrivate, togglePrivacy, updateProfile } = useAuth();
+  const { user, logout, isPrivate, togglePrivacy, updateProfile, following } = useAuth();
   const { lang, setLang, voiceGender, setVoiceGender, availableLangs, t } = useLang();
   const fileInputRef = useRef(null);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', phone: '', city: '', state: '' });
 
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
@@ -18,8 +21,23 @@ export function Profile() {
     }
   };
 
+  const startEditing = () => {
+    setEditForm({ 
+      name: user?.name || '', 
+      phone: user?.phone || '', 
+      city: user?.city || '', 
+      state: user?.state || '' 
+    });
+    setIsEditing(true);
+  };
+
+  const saveProfile = () => {
+    updateProfile(editForm);
+    setIsEditing(false);
+  };
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 relative">
       <h1 className="text-2xl font-display font-black text-white mb-6">{t('profile_settings')}</h1>
       
       <div className="bg-agri-card border border-agri-border rounded-2xl mb-8 relative overflow-hidden">
@@ -54,11 +72,11 @@ export function Profile() {
           </div>
           <div className="flex gap-6 mt-2 border-t border-white/5 pt-4">
             <div className="text-center flex-1">
-              <div className="text-lg font-bold text-white">1.2k</div>
+              <div className="text-lg font-bold text-white">{user?.followers || 0}</div>
               <div className="text-[10px] text-gray-400 uppercase">{t('followers')}</div>
             </div>
             <div className="text-center flex-1">
-              <div className="text-lg font-bold text-white">145</div>
+              <div className="text-lg font-bold text-white">{following.length}</div>
               <div className="text-[10px] text-gray-400 uppercase">{t('following')}</div>
             </div>
           </div>
@@ -123,7 +141,7 @@ export function Profile() {
               </button>
             </div>
 
-            <button className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors">
+            <button onClick={startEditing} className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors">
               <UserIcon className="text-purple-400" size={18} /> {t('edit_profile')}
             </button>
             <button className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors">
@@ -138,6 +156,50 @@ export function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-agri-bg border border-agri-green/30 w-full max-w-sm rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(34,197,94,0.15)] flex flex-col">
+              <div className="p-4 border-b border-white/5 flex justify-between items-center bg-agri-card">
+                <div className="font-bold text-white text-sm">{t('edit_profile')}</div>
+                <button onClick={() => setIsEditing(false)} className="text-gray-400 hover:text-white"><X size={20}/></button>
+              </div>
+              
+              <div className="p-5 space-y-4">
+                <div>
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Name</label>
+                  <input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white focus:border-agri-green outline-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Phone</label>
+                  <input value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white focus:border-agri-green outline-none" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">City</label>
+                    <input value={editForm.city} onChange={e => setEditForm({...editForm, city: e.target.value})} className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white focus:border-agri-green outline-none" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">State</label>
+                    <input value={editForm.state} onChange={e => setEditForm({...editForm, state: e.target.value})} className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white focus:border-agri-green outline-none" />
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <button onClick={() => setIsEditing(false)} className="flex-1 bg-agri-card border border-agri-border py-3 rounded-xl font-bold text-gray-300">
+                    {t('cancel') || 'Cancel'}
+                  </button>
+                  <button onClick={saveProfile} className="flex-1 bg-agri-green text-black py-3 rounded-xl font-bold flex justify-center items-center gap-2">
+                    <Check size={16} /> {t('save_changes') || 'Save'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

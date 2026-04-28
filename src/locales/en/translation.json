@@ -12,6 +12,8 @@
   "avg_quality": "Avg Quality Score",
   "total_earned": "Total Earned",
   "good_morning": "Good Morning",
+  "good_afternoon": "Good Afternoon",
+  "good_night": "Good Night",
   "news_hub": "AgriNews Hub",
   "listen": "Listen",
   "search_news": "Search news...",
@@ -62,5 +64,7 @@
   "login_google": "Continue with Google",
   "complete_profile": "Complete Profile",
   "start_using": "Start Using AgriVerify",
-  "verification_complete": "Verification complete. Your code is"
+  "verification_complete": "Verification complete. Your code is",
+  "save_changes": "Save Changes",
+  "cancel": "Cancel"
 }
