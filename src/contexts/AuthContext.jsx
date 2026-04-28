@@ -88,21 +88,33 @@ export function AuthProvider({ children }) {
 
   const completeProfile = async (formData) => {
     if (!auth0User?.sub) return;
+    setLoading(true);
 
-    const finalUser = {
-      ...formData,
-      uid: auth0User.sub,
-      email: auth0User.email || '',
-      avatar: formData.avatar || auth0User.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
-      nameLowerCase: formData.name.toLowerCase(),
-      isPrivate: false,
-      followersCount: 0,
-      followingCount: 0
-    };
-    
-    await setDoc(doc(usersRef, auth0User.sub), finalUser, { merge: true });
-    setUser(finalUser);
-    setupRealtimeListeners(auth0User.sub);
+    try {
+      const finalUser = {
+        ...formData,
+        uid: auth0User.sub,
+        email: auth0User.email || '',
+        avatar: formData.avatar || auth0User.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
+        nameLowerCase: formData.name.toLowerCase(),
+        isPrivate: false,
+        followersCount: 0,
+        followingCount: 0,
+        // CRITICAL: isNew MUST be undefined or false to trigger redirect
+      };
+      
+      // Save to Firestore using Auth0 sub as document ID
+      await setDoc(doc(usersRef, auth0User.sub), finalUser);
+      
+      // Update local state and trigger setup
+      setUser(finalUser);
+      setupRealtimeListeners(auth0User.sub);
+    } catch (error) {
+      console.error("Onboarding failed:", error);
+      alert("Failed to save profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateProfile = async (updates) => {

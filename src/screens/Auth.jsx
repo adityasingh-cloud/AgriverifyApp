@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
-import { Mail, ArrowRight, LogIn } from 'lucide-react';
+import { Mail, ArrowRight, LogIn, RefreshCw } from 'lucide-react';
 
 export function Auth() {
-  const { login, completeProfile, user } = useAuth();
+  const { login, completeProfile, user, loading } = useAuth();
   const { t } = useLang();
   
   const [step, setStep] = useState(1); // 1: Login Trigger, 2: Profile Onboarding
@@ -84,8 +84,18 @@ export function Auth() {
 
                 <input required placeholder="Phone Number" value={formData.phone} onChange={e => setFormData(p => ({...p, phone: e.target.value}))} className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-agri-green outline-none" />
 
-                <button type="submit" className="w-full mt-6 bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white shadow-[0_8px_24px_rgba(34,197,94,0.25)] flex justify-center items-center gap-2 hover:scale-[0.98] transition-transform">
-                  {t('start_using')} <ArrowRight size={18} />
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full mt-6 bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white shadow-[0_8px_24px_rgba(34,197,94,0.25)] flex justify-center items-center gap-2 hover:scale-[0.98] transition-transform disabled:opacity-50"
+                >
+                  {loading ? (
+                    <RefreshCw className="animate-spin" size={18} />
+                  ) : (
+                    <>
+                      {t('start_using')} <ArrowRight size={18} />
+                    </>
+                  )}
                 </button>
               </form>
             </div>
