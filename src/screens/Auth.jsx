@@ -2,49 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
-import { Phone, Mail, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Mail, ArrowRight, LogIn, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export function Auth() {
-  const { loginWithGoogle, completeProfile, user, loading } = useAuth();
+  const { login, completeProfile, user, loading, onboardingSuccess } = useAuth();
   const { t } = useLang();
   
-  const [step, setStep] = useState(1); // 1: Method, 2: Phone, 3: OTP, 4: Profile
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  
+  const [step, setStep] = useState(1); // 1: Login Trigger, 2: Profile Onboarding
   const [formData, setFormData] = useState({
     name: '', dob: '', city: '', state: '', country: 'India', phone: '', gender: 'Male'
   });
 
   useEffect(() => {
     if (user && user.isNew) {
-      setStep(4);
+      setStep(2);
     }
   }, [user]);
-
-  const handlePhoneSubmit = (e) => {
-    e.preventDefault();
-    if (phone.length !== 10) {
-      alert("Please enter a valid 10-digit phone number.");
-      return;
-    }
-    setStep(3);
-  };
-
-  const handleOtpVerify = (e) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      alert("Please enter the 6-digit OTP.");
-      return;
-    }
-    setIsVerifying(true);
-    setTimeout(() => {
-      setFormData(prev => ({ ...prev, phone: `+91 ${phone}` }));
-      setStep(4);
-      setIsVerifying(false);
-    }, 1500);
-  };
 
   const handleComplete = (e) => {
     e.preventDefault();
@@ -73,70 +46,21 @@ export function Auth() {
               <h1 className="text-3xl font-display font-black text-white mb-2">AgriVerify AI</h1>
               <p className="text-gray-400 text-sm mb-10">Secure Verification & Social Hub</p>
 
-              <button onClick={() => setStep(2)} className="w-full flex items-center justify-center gap-3 bg-agri-card hover:bg-agri-card2 border border-agri-border py-4 rounded-2xl mb-4 transition-colors">
-                <Phone size={20} className="text-agri-green" />
-                <span className="font-semibold text-white">{t('login_phone')}</span>
+              <button 
+                onClick={login} 
+                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-agri-green to-agri-green-dim py-5 rounded-2xl transition-all hover:scale-[1.02] shadow-[0_10px_30px_rgba(34,197,94,0.3)]"
+              >
+                <LogIn size={22} className="text-white" />
+                <span className="font-bold text-lg text-white">Continue to Login</span>
               </button>
-
-              <button onClick={loginWithGoogle} className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 py-4 rounded-2xl transition-colors">
-                <Mail size={20} className="text-black" />
-                <span className="font-semibold text-black">{t('login_google')}</span>
-              </button>
+              
+              <p className="mt-8 text-[10px] text-gray-500 uppercase tracking-widest leading-relaxed">
+                Powered by Auth0 & Learvon Compliance Engine
+              </p>
             </div>
           )}
 
           {step === 2 && (
-            <div>
-              <h2 className="text-2xl font-display font-black text-white mb-1">Enter Phone</h2>
-              <p className="text-gray-400 text-sm mb-6">We'll send a 6-digit OTP for verification</p>
-
-              <form onSubmit={handlePhoneSubmit} className="space-y-4">
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold border-r border-white/10 pr-3">+91</span>
-                  <input 
-                    required 
-                    type="tel"
-                    pattern="[0-9]{10}"
-                    placeholder="10-digit number" 
-                    value={phone} 
-                    onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} 
-                    className="w-full bg-agri-card border border-agri-border rounded-xl pl-16 pr-4 py-4 text-white placeholder-gray-500 focus:border-agri-green outline-none transition-colors" 
-                  />
-                </div>
-
-                <button type="submit" className="w-full bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white shadow-[0_8px_24px_rgba(34,197,94,0.25)] flex justify-center items-center gap-2">
-                  Send OTP <ArrowRight size={18} />
-                </button>
-                <button type="button" onClick={() => setStep(1)} className="w-full text-gray-500 text-xs py-2">Back to methods</button>
-              </form>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div>
-              <h2 className="text-2xl font-display font-black text-white mb-1">Verify OTP</h2>
-              <p className="text-gray-400 text-sm mb-6">Enter code sent to +91 {phone}</p>
-
-              <form onSubmit={handleOtpVerify} className="space-y-4">
-                <input 
-                  required 
-                  type="text"
-                  placeholder="000000" 
-                  value={otp} 
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} 
-                  className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-4 text-center text-2xl tracking-[1em] text-white focus:border-agri-green outline-none" 
-                />
-
-                <button disabled={isVerifying} type="submit" className="w-full bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white shadow-[0_8px_24px_rgba(34,197,94,0.25)] flex justify-center items-center gap-2 disabled:opacity-50">
-                  {isVerifying ? <RefreshCw className="animate-spin" /> : <ShieldCheck size={18} />}
-                  {isVerifying ? "Verifying..." : "Verify & Continue"}
-                </button>
-                <button type="button" onClick={() => setStep(2)} className="w-full text-gray-500 text-xs py-2">Resend OTP or change number</button>
-              </form>
-            </div>
-          )}
-
-          {step === 4 && (
             <div>
               <h2 className="text-2xl font-display font-black text-white mb-1">{t('complete_profile')}</h2>
               <p className="text-gray-400 text-sm mb-6">Complete your profile to join the community</p>
@@ -162,11 +86,15 @@ export function Auth() {
 
                 <button 
                   type="submit" 
-                  disabled={loading}
-                  className="w-full mt-6 bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white shadow-[0_8px_24px_rgba(34,197,94,0.25)] flex justify-center items-center gap-2 hover:scale-[0.98] transition-transform disabled:opacity-50"
+                  disabled={loading || onboardingSuccess}
+                  className={`w-full mt-6 py-4 rounded-xl font-bold text-white shadow-[0_8px_24px_rgba(34,197,94,0.25)] flex justify-center items-center gap-2 transition-all ${onboardingSuccess ? 'bg-blue-500' : 'bg-gradient-to-r from-agri-green to-agri-green-dim'} disabled:opacity-70`}
                 >
-                  {loading ? (
-                    <RefreshCw className="animate-spin" size={18} />
+                  {onboardingSuccess ? (
+                    <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="flex items-center gap-2">
+                      <CheckCircle2 size={20} /> Success! Redirecting...
+                    </motion.div>
+                  ) : loading ? (
+                    <RefreshCw className="animate-spin" size={20} />
                   ) : (
                     <>
                       {t('start_using')} <ArrowRight size={18} />

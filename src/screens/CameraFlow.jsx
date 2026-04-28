@@ -80,10 +80,19 @@ export function CameraFlow({ onClose }) {
       setErrorDetails(null);
       setProcessingProgress(10);
 
-      // Fix 60% error: Validate Auth0 Token before upload
+      // CRITICAL FIX: Ensure session and profile sync before upload
       const token = await getAuthToken();
       if (!token) {
-        throw new Error("Invalid Session. Please login again.");
+        console.error("Auth0 Session Missing during verification trigger.");
+        throw new Error("Session Expired. Please login again.");
+      }
+
+      setProcessingProgress(15);
+      
+      // Ensure Firestore Profile is synced
+      if (!user || user.isNew) {
+        console.error("Firestore Profile not synced for UID:", user?.uid);
+        throw new Error("Profile sync failed. Please complete your profile first.");
       }
       
       const uploadedUrls = [];

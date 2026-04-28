@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
+import { useAuth0 } from '@auth0/auth0-react';
+import { db, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const { user: auth0User, isAuthenticated, isLoading: auth0Loading, loginWithRedirect, logout: auth0Logout, getAccessTokenSilently } = useAuth0();
+  
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -13,31 +16,38 @@ export function AuthProvider({ children }) {
   const [followersCount, setFollowersCount] = useState(0);
   const [socialGraph, setSocialGraph] = useState({});
   const [scans, setScans] = useState([]);
+  
+  const [onboardingSuccess, setOnboardingSuccess] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (auth0Loading) return;
+
+    const syncUser = async () => {
       setLoading(true);
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(usersRef, firebaseUser.uid));
+      if (isAuthenticated && auth0User) {
+        // Sync with Firestore using Auth0 sub as ID (user.sub)
+        const userDoc = await getDoc(doc(usersRef, auth0User.sub));
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setUser({ ...userData, isNew: false });
-          setupRealtimeListeners(firebaseUser.uid);
+          setupRealtimeListeners(auth0User.sub);
         } else {
-          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
+          // User authenticated in Auth0 but profile missing in Firestore
+          setUser({ uid: auth0User.sub, email: auth0User.email, isNew: true });
           setLoading(false);
         }
       } else {
         setUser(null);
         setLoading(false);
       }
-    });
+    };
 
+    syncUser();
+    
     const savedScans = localStorage.getItem('agriverify_scans');
     if (savedScans) setScans(JSON.parse(savedScans));
 
-    return () => unsubscribe();
-  }, []);
+  }, [isAuthenticated, auth0User, auth0Loading]);
 
   const setupRealtimeListeners = (uid) => {
     try {
@@ -59,74 +69,57 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return () => { unsubPosts(); unsubFollowing(); unsubFollowers(); };
     } catch (e) {
-      console.warn("Realtime listeners failed", e);
+      console.warn("Realtime listeners failed:", e);
       setLoading(false);
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      // Use Popup for desktop, but Redirect for mobile for better reliability
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
-    } catch (error) {
-      console.error("Google Auth Failed", error);
-      alert("Google Sign-In failed. Please check if your domain is authorized in Firebase Console.");
-    }
+  const login = async () => {
+    await loginWithRedirect();
+  };
+
+  const logout = () => {
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+    setUser(null);
+    setPosts([]);
+    setFollowing([]);
   };
 
   const completeProfile = async (formData) => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      alert("Session expired. Please login again.");
-      window.location.reload();
-      return;
-    }
-    
+    if (!auth0User?.sub) return;
     setLoading(true);
 
     try {
-      const uid = currentUser.uid;
       const finalUser = {
         ...formData,
-        uid,
-        email: currentUser.email || '',
-        avatar: formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
+        uid: auth0User.sub,
+        email: auth0User.email || '',
+        avatar: formData.avatar || auth0User.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
         nameLowerCase: formData.name.toLowerCase(),
         isPrivate: false,
         followersCount: 0,
         followingCount: 0,
-        isNew: false // Ensure this is part of the doc
+        isNew: false
       };
       
-      // Save to Firestore
-      await setDoc(doc(usersRef, uid), finalUser);
+      // Save to Firestore using Auth0 sub as document ID
+      await setDoc(doc(usersRef, auth0User.sub), finalUser);
       
-      // Setup listeners first
-      await setupRealtimeListeners(uid);
+      // Visual feedback: Trigger Success Checkmark
+      setOnboardingSuccess(true);
       
-      // Final State Update to trigger redirect in App.jsx
-      setUser(finalUser); 
-      
-      console.log("Profile complete, user state updated.");
+      // Wait for a second so user sees the success state
+      setTimeout(async () => {
+        setUser(finalUser);
+        setupRealtimeListeners(auth0User.sub);
+        setLoading(false);
+      }, 1500);
+
     } catch (error) {
-      console.error("Complete Profile error:", error);
-      alert("Failed to save profile. Error: " + error.message);
-    } finally {
+      console.error("Onboarding failed:", error);
+      alert("Verification Sync Failed. Please check your connection.");
       setLoading(false);
     }
-  };
-
-  const logout = () => {
-    signOut(auth).then(() => {
-      setUser(null);
-      setPosts([]);
-      setFollowing([]);
-    });
   };
 
   const updateProfile = async (updates) => {
@@ -217,12 +210,21 @@ export function AuthProvider({ children }) {
     localStorage.setItem('agriverify_scans', JSON.stringify(newScans));
   };
 
+  const getAuthToken = async () => {
+    try {
+      return await getAccessTokenSilently();
+    } catch (e) {
+      console.error("Token fetch failed", e);
+      return null;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
-      user, loginWithGoogle, completeProfile, logout, updateProfile, scans, addScan, 
-      posts, addPost, loading,
+      user, login, completeProfile, logout, updateProfile, scans, addScan, 
+      posts, addPost, loading: loading || auth0Loading,
       togglePrivacy, following, toggleFollow, socialGraph, searchUsers, followersCount,
-      comments, addComment, fetchComments
+      comments, addComment, fetchComments, getAuthToken, onboardingSuccess
     }}>
       {children}
     </AuthContext.Provider>
