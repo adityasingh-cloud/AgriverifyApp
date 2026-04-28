@@ -5,9 +5,9 @@ import { useLang } from '../contexts/LangContext';
 
 const CATEGORIES = [
   { id: 'all', icon: Newspaper, key: 'cat_all', query: 'agriculture india' },
-  { id: 'subsidies', icon: TrendingUp, key: 'cat_subsidies', query: 'farmer subsidies' },
-  { id: 'market', icon: TrendingUp, key: 'cat_market', query: 'mandi prices' },
-  { id: 'tech', icon: Globe, key: 'cat_tech', query: 'crop tech' },
+  { id: 'subsidies', icon: TrendingUp, key: 'cat_subsidies', query: 'farmer subsidies india' },
+  { id: 'market', icon: TrendingUp, key: 'cat_market', query: 'crop mandi prices' },
+  { id: 'tech', icon: Globe, key: 'cat_tech', query: 'agriculture technology' },
 ];
 
 export function News() {
@@ -17,23 +17,58 @@ export function News() {
   const [newsData, setNewsData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Simulated API fetch acting as Live Sync
   useEffect(() => {
-    setLoading(true);
-    // In production, this would be: fetch(`https://gnews.io/api/v4/search?q=${category.query}&apikey=YOUR_KEY`)
-    const fetchLiveNews = setTimeout(() => {
-      const mockApiData = [
-        { id: 1, source: 'Reuters Agri', author: 'Global Desk', type: 'global', time: '10m ago', content: 'Global fertilizer supply chain stabilizes, bringing down prices for urea and DAP by 15% this quarter.', readTime: '2m read', isBreaking: true },
-        { id: 2, source: 'DD Kisan', author: 'Gov Updates', type: 'subsidies', time: '1h ago', content: 'New PM-Kisan subsidy installments will be released next week. Update your KYC to ensure seamless transfer.', readTime: '1m read', isBreaking: false },
-        { id: 3, source: 'Times of India', author: 'Market Watch', type: 'market', time: '3h ago', content: 'Wheat prices surge in Northern Mandis due to unseasonal rain forecasts. Farmers advised to harvest early.', readTime: '3m read', isBreaking: false },
-        { id: 4, source: 'AgriTech Weekly', author: 'TechDesk', type: 'tech', time: '5h ago', content: 'New Drone-as-a-Service launched in Maharashtra for targeted pesticide spraying, cutting costs by 40%.', readTime: '5m read', isBreaking: false },
-      ];
+    let isMounted = true;
+    const fetchLiveNews = async () => {
+      setLoading(true);
+      const catQuery = CATEGORIES.find(c => c.id === activeCategory)?.query || 'agriculture';
+      const apiKey = import.meta.env.VITE_NEWS_API_KEY;
       
-      const categoryFilter = activeCategory === 'all' ? mockApiData : mockApiData.filter(n => n.type === activeCategory || (activeCategory === 'tech' && n.type === 'global'));
-      setNewsData(categoryFilter);
-      setLoading(false);
-    }, 800); // Network latency simulation
-    return () => clearTimeout(fetchLiveNews);
+      try {
+        if (!apiKey || apiKey === 'YOUR_NEWS_API_KEY') {
+          throw new Error("NewsAPI key missing. Falling back to mock data.");
+        }
+        
+        const response = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(catQuery)}&sortBy=publishedAt&language=en&apiKey=${apiKey}`);
+        if (!response.ok) throw new Error("API Limit Reached or Invalid Key");
+        
+        const data = await response.json();
+        
+        if (isMounted && data.articles) {
+          const formatted = data.articles.slice(0, 15).map((article, index) => ({
+            id: index,
+            source: article.source.name || 'NewsAPI',
+            author: article.author || 'Global Desk',
+            type: activeCategory,
+            time: new Date(article.publishedAt).toLocaleDateString(),
+            content: article.title,
+            description: article.description,
+            url: article.url,
+            readTime: '3m read',
+            isBreaking: index === 0
+          }));
+          setNewsData(formatted);
+        }
+      } catch (err) {
+        console.warn(err.message);
+        // Fallback to high-quality mock data if API key fails so production app doesn't break
+        const mockApiData = [
+          { id: 1, source: 'Reuters Agri', author: 'Global Desk', type: 'global', time: '10m ago', content: 'Global fertilizer supply chain stabilizes, bringing down prices for urea and DAP by 15% this quarter.', url: '#', readTime: '2m read', isBreaking: true },
+          { id: 2, source: 'DD Kisan', author: 'Gov Updates', type: 'subsidies', time: '1h ago', content: 'New PM-Kisan subsidy installments will be released next week. Update your KYC to ensure seamless transfer.', url: '#', readTime: '1m read', isBreaking: false },
+          { id: 3, source: 'Times of India', author: 'Market Watch', type: 'market', time: '3h ago', content: 'Wheat prices surge in Northern Mandis due to unseasonal rain forecasts. Farmers advised to harvest early.', url: '#', readTime: '3m read', isBreaking: false },
+          { id: 4, source: 'AgriTech Weekly', author: 'TechDesk', type: 'tech', time: '5h ago', content: 'New Drone-as-a-Service launched in Maharashtra for targeted pesticide spraying, cutting costs by 40%.', url: '#', readTime: '5m read', isBreaking: false },
+        ];
+        if (isMounted) {
+          const categoryFilter = activeCategory === 'all' ? mockApiData : mockApiData.filter(n => n.type === activeCategory || (activeCategory === 'tech' && n.type === 'global'));
+          setNewsData(categoryFilter);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchLiveNews();
+    return () => { isMounted = false; };
   }, [activeCategory]);
 
   const filteredNews = newsData.filter(n => {
@@ -105,13 +140,13 @@ export function News() {
               <span className="text-[10px] font-bold text-gray-400 uppercase">{news.source}</span>
               <span className="text-[10px] text-gray-600">• {news.time}</span>
             </div>
-            <div className="text-sm font-bold text-white mb-1">{news.author}</div>
-            <p className="text-sm text-gray-300 leading-relaxed mb-3">{news.content}</p>
+            <div className="text-sm font-bold text-white mb-1">{news.content}</div>
+            {news.description && <p className="text-xs text-gray-400 leading-relaxed mb-3 line-clamp-2">{news.description}</p>}
             <div className="flex justify-between items-center border-t border-white/5 pt-3">
               <span className="text-[10px] text-gray-500 font-semibold">{news.readTime}</span>
-              <button className="text-xs text-agri-green font-bold flex items-center gap-1">
+              <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-xs text-agri-green font-bold flex items-center gap-1">
                 {t('read_more')} <ExternalLink size={12} />
-              </button>
+              </a>
             </div>
           </div>
         )) : (
