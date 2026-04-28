@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Phone, Mail, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Send, Phone, Mail, AlertTriangle, ArrowLeft, Volume2, Mic } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLang } from '../contexts/LangContext';
 
 const INITIAL_CHAT = [
   { id: 1, from: 'bot', text: "Namaste! 🌾 I'm AgriBot. I can help with crop quality, market prices, or technical support. How can I assist you today?" }
@@ -9,6 +10,7 @@ const INITIAL_CHAT = [
 
 export function Support({ setCurrentTab }) {
   const { user } = useAuth();
+  const { speak } = useLang();
   const [messages, setMessages] = useState(INITIAL_CHAT);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -33,22 +35,24 @@ export function Support({ setCurrentTab }) {
     setTimeout(() => {
       setIsTyping(false);
       const textLower = userText.toLowerCase();
-      // Keyword detection for escalation
-      if (textLower.includes('fraud') || textLower.includes('help') || textLower.includes('human')) {
-        setMessages(prev => [...prev, { 
-          id: Date.now(), 
-          from: 'bot', 
-          text: "I detect this is a serious matter. I am connecting you to a Learvon Human Expert immediately." 
-        }]);
-        setShowExpert(true);
+      let responseText = "";
+      let escalation = false;
+
+      if (textLower.includes('fraud') || textLower.includes('help') || textLower.includes('human') || textLower.includes('complaint')) {
+        responseText = "I understand this is a serious matter. I am connecting you to our Priority Support desk immediately. You can reach our senior expert at adityasinghvoid0009@gmail.com.";
+        escalation = true;
+      } else if (textLower.includes('price') || textLower.includes('mandi') || textLower.includes('rate')) {
+        responseText = "Market prices are currently fluctuating. I recommend using the Scanner to verify your crop's quality, which will help you negotiate a better price in the mandi.";
+      } else if (textLower.includes('scan') || textLower.includes('camera') || textLower.includes('verify')) {
+        responseText = "To scan your crop, simply click the Camera icon in the bottom menu. Capture three angles as prompted, and our AI will generate an authenticity hash for you.";
       } else {
-        setMessages(prev => [...prev, { 
-          id: Date.now(), 
-          from: 'bot', 
-          text: "Based on our data, current mandi rates are stable. Try scanning your crop for a precise AI evaluation." 
-        }]);
+        responseText = "I'm here to help with any customer care needs! You can ask me about scanning, market prices, or profile settings. For urgent issues, just type 'help'.";
       }
-    }, 1000);
+
+      setMessages(prev => [...prev, { id: Date.now(), from: 'bot', text: responseText }]);
+      speak(responseText);
+      if (escalation) setShowExpert(true);
+    }, 1200);
   };
 
   return (
@@ -59,7 +63,7 @@ export function Support({ setCurrentTab }) {
         </button>
         <div className="w-10 h-10 rounded-xl bg-agri-green/20 flex items-center justify-center text-xl">🤖</div>
         <div>
-          <h2 className="text-white font-bold text-sm">Hybrid AI Support</h2>
+          <h2 className="text-white font-bold text-sm">AgriVerify AI Assistant</h2>
           <div className="flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-agri-green animate-pulse" />
             <span className="text-[10px] text-agri-green font-semibold">Online</span>
