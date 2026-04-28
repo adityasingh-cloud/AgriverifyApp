@@ -4,8 +4,38 @@ import { Heart, MessageCircle, Share2, Image as ImageIcon, Send, X, Search, Shie
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
+const MOCK_POSTS = [
+  {
+    id: 'm1',
+    user: 'Rajesh Kumar',
+    location: 'Punjab, India',
+    content: 'Just finished the quality audit for my Wheat harvest. Certified Grade A+ with 11% moisture. Ready for the market! 🌾',
+    likes: 24,
+    avatar: '👨🏽‍🌾',
+    image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&q=80&w=800'
+  },
+  {
+    id: 'm2',
+    user: 'Sita Devi',
+    location: 'Haryana, India',
+    content: 'Used the new sensor tool today. It is so easy to use. Highly recommend to all farmers in our cooperative. #AgriTech',
+    likes: 18,
+    avatar: '👩🏽‍🌾',
+    image: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&q=80&w=800'
+  },
+  {
+    id: 'm3',
+    user: 'Amit Singh',
+    location: 'Uttar Pradesh, India',
+    content: 'The market prices are looking stable today. Verified my batch ID: LV-902142-12. Fair prices guaranteed.',
+    likes: 31,
+    avatar: '👨🏽‍🌾',
+    image: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&q=80&w=800'
+  }
+];
+
 export function Community() {
-  const { user, posts, addPost, socialGraph, searchUsers, comments, fetchComments } = useAuth();
+  const { user, posts: contextPosts, addPost, searchUsers, comments, fetchComments } = useAuth();
   const { t } = useLang();
   
   const [activeTab, setActiveTab] = useState('feed');
@@ -16,11 +46,16 @@ export function Community() {
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Fallback to MOCK_POSTS if context is empty
+  const displayPosts = contextPosts.length > 0 ? contextPosts : MOCK_POSTS;
+
   useEffect(() => {
     if (searchQuery.trim().length > 0) searchUsers(searchQuery);
   }, [searchQuery]);
 
-  const handleImageSelect = (e) => {
+  const handleFileChange = (e) => {
+    console.log('File selected:', e.target.files[0]);
+    // For the demo, we will just log the file and not process it to avoid crashes
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -74,7 +109,7 @@ export function Community() {
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
                     placeholder="Share a harvest audit..."
-                    className="w-full bg-transparent border-none outline-none text-base text-[#2D2D2D] font-medium resize-none h-16 placeholder:opacity-30"
+                    className="w-full bg-transparent border-none outline-none text-base text-[#1A1A40] font-medium resize-none h-16 placeholder:opacity-30"
                   />
                   {selectedImage && (
                     <div className="relative inline-block mt-4">
@@ -105,11 +140,11 @@ export function Community() {
       </div>
 
       <div className="p-6 space-y-6 pb-32">
-        {posts.map(post => (
+        {displayPosts.map(post => (
           <div key={post.id} className="bg-white border border-[#1E5128]/10 rounded-[28px] p-6 shadow-sm">
             <div className="flex items-center gap-4 mb-5">
-              <div className="w-12 h-12 rounded-[16px] overflow-hidden border border-[#1E5128]/10 bg-[#F1F8F4]">
-                <img src={post.avatar} className="w-full h-full object-cover" />
+              <div className="w-12 h-12 rounded-[16px] overflow-hidden border border-[#1E5128]/10 bg-[#F1F8F4] flex items-center justify-center text-2xl">
+                {post.avatar.startsWith('http') ? <img src={post.avatar} className="w-full h-full object-cover" /> : post.avatar}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -120,7 +155,7 @@ export function Community() {
               </div>
             </div>
 
-            {post.content && <p className="text-base text-[#2D2D2D] font-medium mb-5 leading-relaxed">{post.content}</p>}
+            {post.content && <p className="text-base text-[#1A1A40] font-medium mb-5 leading-relaxed">{post.content}</p>}
             
             {post.image && (
               <div className="rounded-[24px] overflow-hidden border border-[#1E5128]/5 mb-5">
