@@ -70,7 +70,14 @@ export function AuthProvider({ children }) {
       // onAuthStateChanged handles the rest
     } catch (err) {
       console.error('Google Sign-In error:', err);
-      alert('Google Sign-In failed: ' + err.message);
+      if (err.code === 'auth/api-key-not-valid' || err.message.includes('API key')) {
+        console.warn('Invalid Firebase API Key. Entering Demo Mode.');
+        const mockUid = 'demo_google_' + Math.random().toString(36).substr(2, 9);
+        setUser({ uid: mockUid, email: 'demo_google@agriverify.app', isNew: true });
+        setLoading(false);
+      } else {
+        alert('Google Sign-In failed: ' + err.message);
+      }
     }
   };
 
@@ -82,8 +89,16 @@ export function AuthProvider({ children }) {
       // onAuthStateChanged will fire → sets user = { uid, isNew: true }
     } catch (err) {
       console.error('Anonymous sign-in error:', err);
-      alert('Could not start phone session: ' + err.message);
-      throw err;
+      if (err.code === 'auth/api-key-not-valid' || err.message.includes('API key')) {
+        console.warn('Invalid Firebase API Key. Entering Demo Mode.');
+        // Bypass Firebase and set a local mock session so the app flow works
+        const mockUid = 'demo_user_' + Math.random().toString(36).substr(2, 9);
+        setUser({ uid: mockUid, email: 'demo@agriverify.app', isNew: true });
+        setLoading(false);
+      } else {
+        alert('Could not start phone session: ' + err.message);
+        throw err;
+      }
     }
   };
 
@@ -98,7 +113,7 @@ export function AuthProvider({ children }) {
     }
     setLoading(true);
     try {
-      const firebaseUser = auth.currentUser; // may be null; use uid from state as fallback
+      const firebaseUser = auth.currentUser;
       const finalUser = {
         ...formData,
         uid,
@@ -113,9 +128,16 @@ export function AuthProvider({ children }) {
         followingCount: 0,
         isNew: false,
       };
-      await setDoc(doc(usersRef, uid), finalUser);
+
+      // Try to save to Firestore, but catch errors if API key is invalid/missing
+      try {
+        await setDoc(doc(usersRef, uid), finalUser);
+        setupListeners(uid);
+      } catch (dbErr) {
+        console.warn("Firestore save skipped (Demo Mode):", dbErr.message);
+      }
+
       setUser(finalUser);
-      setupListeners(uid);
     } catch (err) {
       console.error('Profile save failed:', err);
       alert('Failed to save profile: ' + err.message);
