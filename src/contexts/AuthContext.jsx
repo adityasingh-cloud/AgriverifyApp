@@ -66,36 +66,56 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      // Use Popup for desktop, but Redirect for mobile for better reliability
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        await signInWithPopup(auth, googleProvider);
+      }
     } catch (error) {
       console.error("Google Auth Failed", error);
-      alert("Google Sign-In failed.");
+      alert("Google Sign-In failed. Please check if your domain is authorized in Firebase Console.");
     }
   };
 
   const completeProfile = async (formData) => {
-    if (!auth.currentUser) return;
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      alert("Session expired. Please login again.");
+      window.location.reload();
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      const uid = auth.currentUser.uid;
+      const uid = currentUser.uid;
       const finalUser = {
         ...formData,
         uid,
-        email: auth.currentUser.email || '',
+        email: currentUser.email || '',
         avatar: formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
         nameLowerCase: formData.name.toLowerCase(),
         isPrivate: false,
         followersCount: 0,
         followingCount: 0,
+        isNew: false // Ensure this is part of the doc
       };
       
+      // Save to Firestore
       await setDoc(doc(usersRef, uid), finalUser);
-      setUser({ ...finalUser, isNew: false }); // Force redirect by setting isNew to false
-      setupRealtimeListeners(uid);
+      
+      // Setup listeners first
+      await setupRealtimeListeners(uid);
+      
+      // Final State Update to trigger redirect in App.jsx
+      setUser(finalUser); 
+      
+      console.log("Profile complete, user state updated.");
     } catch (error) {
       console.error("Complete Profile error:", error);
-      alert("Failed to save profile.");
+      alert("Failed to save profile. Error: " + error.message);
     } finally {
       setLoading(false);
     }
