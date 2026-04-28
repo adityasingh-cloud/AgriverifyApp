@@ -10,14 +10,20 @@ function AppContent() {
   const [safetyTimeout, setSafetyTimeout] = useState(false);
 
   useEffect(() => {
+    // Clear old session data if definitely not logged in to prevent stale state issues
+    if (!loading && !user) {
+      sessionStorage.clear();
+      console.log("Stale session cleared.");
+    }
+
     const timer = setTimeout(() => {
       if (loading) {
-        console.warn("Auth check taking too long (10s), triggering safety timeout.");
+        console.warn("Auth check taking too long (3s), triggering safety timeout.");
         setSafetyTimeout(true);
       }
-    }, 10000);
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [loading]);
+  }, [loading, user]);
   
   if (loading && !safetyTimeout) {
     return (

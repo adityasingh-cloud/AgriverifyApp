@@ -111,14 +111,15 @@ export function AuthProvider({ children }) {
       
       setOnboardingSuccess(true);
       
-      // Force app state update
+      // Update local state
       setUser(finalUser);
       setupRealtimeListeners(auth0User.sub);
       
-      // If the app doesn't redirect in 2 seconds, force a reload to be safe
+      // Forceful redirect to prevent back-button loops
       setTimeout(() => {
-        setLoading(false);
-      }, 1000);
+        console.log("Redirecting to dashboard...");
+        window.location.replace('/');
+      }, 1500);
 
     } catch (error) {
       console.error("CRITICAL: Onboarding failed:", error);
