@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Volume2, Globe, Shield, Award, Lock, Unlock, Camera, HelpCircle, Edit3, Save, X } from 'lucide-react';
+import { LogOut, Volume2, Globe, Shield, Award, Lock, Unlock, Camera, HelpCircle, Edit3, Save, X, User as UserIcon, Calendar, MapPin, Phone, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
@@ -9,7 +9,14 @@ export function Profile({ setCurrentTab }) {
   const { lang, setLang, voiceGender, setVoiceGender, availableLangs, t } = useLang();
   const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ name: user?.name || '', city: user?.city || '', bio: user?.bio || '' });
+  const [editData, setEditData] = useState({ 
+    name: user?.name || '', 
+    city: user?.city || '', 
+    state: user?.state || '',
+    dob: user?.dob || '',
+    phone: user?.phone || '',
+    email: user?.email || ''
+  });
   
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -39,20 +46,52 @@ export function Profile({ setCurrentTab }) {
     </div>
   );
 
+  const EditField = ({ label, icon: Icon, value, onChange, placeholder, type = "text" }) => (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[9px] font-black text-[#1E5128] uppercase tracking-widest px-1 opacity-50">{label}</label>
+      <div className="relative">
+        <Icon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1E5128]/40" />
+        <input 
+          type={type}
+          value={value} 
+          onChange={onChange}
+          placeholder={placeholder}
+          className="w-full bg-white border border-[#1E5128]/10 rounded-[16px] pl-11 pr-5 py-3.5 text-sm text-[#1E5128] font-bold outline-none focus:border-[#1E6F6B] transition-colors"
+        />
+      </div>
+    </div>
+  );
+
+  const InfoRow = ({ icon: Icon, label, value, color = "#1E5128" }) => (
+    <div className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center">
+        <Icon size={18} style={{ color }} />
+      </div>
+      <div>
+        <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{label}</div>
+        <div className="text-sm font-black text-[#2D2D2D]">{value || 'Not set'}</div>
+      </div>
+    </div>
+  );
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 pb-40 bg-white min-h-full font-body">
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-3xl font-display font-black text-[#1E5128]">{t('profile_settings')}</h1>
         <button 
-          onClick={() => setIsEditing(!isEditing)}
-          className={`p-3 rounded-[16px] transition-all ${isEditing ? 'bg-[#FF6F61] text-white' : 'bg-[#F1F8F4] text-[#1E5128]'}`}
+          onClick={() => {
+            if (isEditing) handleSave();
+            else setIsEditing(true);
+          }}
+          className={`p-3.5 rounded-[18px] transition-all flex items-center gap-2 ${isEditing ? 'bg-[#1E5128] text-white' : 'bg-[#F1F8F4] text-[#1E5128]'}`}
         >
-          {isEditing ? <X size={20} /> : <Edit3 size={20} />}
+          {isEditing ? <Save size={20} /> : <Edit3 size={20} />}
+          <span className="text-[10px] font-black uppercase tracking-widest">{isEditing ? 'Save' : 'Edit'}</span>
         </button>
       </div>
       
-      {/* Profile Card */}
-      <div className="bg-[#F1F8F4] border border-[#1E5128]/10 rounded-[32px] mb-10 relative overflow-hidden shadow-sm">
+      {/* Profile Header Card */}
+      <div className="bg-[#F1F8F4] border border-[#1E5128]/10 rounded-[36px] mb-10 relative overflow-hidden shadow-sm">
         <div className="p-10 flex flex-col items-center">
           <div className="relative mb-6">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl">
@@ -67,41 +106,44 @@ export function Profile({ setCurrentTab }) {
             </button>
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" />
           </div>
-
-          <AnimatePresence mode="wait">
-            {isEditing ? (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="w-full space-y-4">
-                <input 
-                  value={editData.name} 
-                  onChange={e => setEditData({...editData, name: e.target.value})}
-                  className="w-full bg-white border border-[#1E5128]/10 rounded-[16px] px-5 py-3 text-center text-[#1E5128] font-bold outline-none"
-                  placeholder="Your Name"
-                />
-                <input 
-                  value={editData.city} 
-                  onChange={e => setEditData({...editData, city: e.target.value})}
-                  className="w-full bg-white border border-[#1E5128]/10 rounded-[16px] px-5 py-3 text-center text-[#1E5128] font-bold outline-none"
-                  placeholder="City, State"
-                />
-                <button onClick={handleSave} className="w-full bg-[#1E6F6B] text-white py-4 rounded-[16px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                  <Save size={18} /> Save Changes
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center">
-                <div className="text-2xl font-black text-[#1E5128] mb-1">{user?.name}</div>
-                <div className="text-sm text-[#2D2D2D] opacity-40 font-bold mb-4">{user?.city || 'India'}</div>
-                <div className="flex items-center gap-2 bg-[#1E5128] text-white px-5 py-2 rounded-full shadow-lg shadow-[#1E5128]/10">
-                  <Award size={16} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('certified_partner')}</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="text-2xl font-black text-[#1E5128] mb-1">{user?.name}</div>
+          <div className="flex items-center gap-2 bg-[#1E5128] text-white px-5 py-2 rounded-full shadow-lg shadow-[#1E5128]/10">
+            <Award size={16} />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('certified_partner')}</span>
+          </div>
         </div>
       </div>
 
-      {/* Language Section */}
+      <AnimatePresence mode="wait">
+        {isEditing ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6 mb-12">
+            <EditField label="Full Name" icon={UserIcon} value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="Aditya Singh" />
+            <EditField label="Date of Birth" icon={Calendar} value={editData.dob} onChange={e => setEditData({...editData, dob: e.target.value})} placeholder="YYYY-MM-DD" type="date" />
+            <div className="grid grid-cols-2 gap-4">
+              <EditField label="State" icon={MapPin} value={editData.state} onChange={e => setEditData({...editData, state: e.target.value})} placeholder="West Bengal" />
+              <EditField label="City" icon={MapPin} value={editData.city} onChange={e => setEditData({...editData, city: e.target.value})} placeholder="Kolkata" />
+            </div>
+            <EditField label="Phone Number" icon={Phone} value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} placeholder="+91 96749 51947" type="tel" />
+            <EditField label="Email Address" icon={Mail} value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} placeholder="aditya@example.com" type="email" />
+            
+            <button onClick={handleSave} className="w-full bg-[#1E6F6B] text-white py-5 rounded-[20px] font-black uppercase tracking-[0.2em] shadow-xl shadow-[#1E6F6B]/20 mt-4">
+              Save Profile Data
+            </button>
+            <button onClick={() => setIsEditing(false)} className="w-full text-[#FF6F61] font-black uppercase tracking-widest text-[10px] py-2">
+              Cancel Edits
+            </button>
+          </motion.div>
+        ) : (
+          <Section title="Farmer Identity" icon={UserIcon}>
+             <InfoRow icon={UserIcon} label="Name" value={user?.name} />
+             <InfoRow icon={Calendar} label="Date of Birth" value={user?.dob} />
+             <InfoRow icon={MapPin} label="Location" value={`${user?.city}, ${user?.state}`} />
+             <InfoRow icon={Phone} label="Phone" value={user?.phone} />
+             <InfoRow icon={Mail} label="Email" value={user?.email} />
+          </Section>
+        )}
+      </AnimatePresence>
+
       <Section title={t('app_language')} icon={Globe}>
         <div className="p-6 border-b border-[#1E5128]/5">
           <div className="grid grid-cols-3 gap-4">
@@ -116,43 +158,11 @@ export function Profile({ setCurrentTab }) {
             ))}
           </div>
         </div>
-        <div className="p-8 flex items-center justify-between">
-          <div className="flex items-center gap-4 text-sm text-[#1E5128] font-black uppercase tracking-widest">
-            <Volume2 size={22} className="text-[#1E6F6B]" /> {t('ai_voice')}
-          </div>
-          <div className="flex bg-[#F1F8F4] rounded-[16px] p-2">
-            {['Male', 'Female'].map(g => (
-              <button 
-                key={g}
-                onClick={() => setVoiceGender(g)}
-                className={`px-6 py-2.5 rounded-[12px] text-[10px] font-black transition-all ${voiceGender === g ? 'bg-[#1E6F6B] text-white shadow-lg' : 'text-[#1E5128] opacity-30'}`}
-              >
-                {g}
-              </button>
-            ))}
-          </div>
-        </div>
       </Section>
 
-      {/* Account Section */}
-      <Section title={t('account')} icon={Shield}>
-        <div className="p-8 border-b border-[#1E5128]/5 flex items-center justify-between">
-          <div className="flex items-center gap-5 text-sm text-[#1E5128] font-black uppercase tracking-widest">
-            {isPrivate ? <Lock size={22} className="text-[#1E6F6B]" /> : <Unlock size={22} className="text-[#1E6F6B]" />}
-            {t('private_profile')}
-          </div>
-          <button onClick={togglePrivacy} className={`w-16 h-9 rounded-full p-1.5 transition-all ${isPrivate ? 'bg-[#1E5128]' : 'bg-gray-200'}`}>
-            <div className={`w-6 h-6 rounded-full bg-white transition-transform ${isPrivate ? 'translate-x-7' : 'translate-x-0'}`} />
-          </button>
-        </div>
-        <button onClick={() => setCurrentTab('support')} className="w-full p-8 border-b border-[#1E5128]/5 flex items-center justify-between text-sm text-[#1E5128] font-black uppercase tracking-widest hover:bg-[#F1F8F4] transition-all">
-          <div className="flex items-center gap-5"><HelpCircle size={22} className="text-[#1E6F6B]" /> {t('support')}</div>
-          <div className="w-10 h-10 rounded-[14px] bg-[#1E6F6B]/10 flex items-center justify-center text-[#1E6F6B] text-xl">🤖</div>
-        </button>
-        <button onClick={logout} className="w-full p-8 flex items-center gap-5 text-sm text-[#2D2D2D] opacity-40 font-black uppercase tracking-widest hover:bg-gray-50 transition-all">
-          <LogOut size={22} /> {t('secure_logout')}
-        </button>
-      </Section>
+      <button onClick={logout} className="w-full p-8 bg-[#F1F8F4] border border-[#1E5128]/5 rounded-[32px] flex items-center justify-center gap-4 text-sm text-[#2D2D2D] opacity-40 font-black uppercase tracking-widest hover:bg-gray-100 transition-all">
+        <LogOut size={22} /> {t('secure_logout')}
+      </button>
     </motion.div>
   );
 }

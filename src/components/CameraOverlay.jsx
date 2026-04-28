@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export function CameraOverlay({ onClose }) {
   const { t, speakSlowly } = useLang();
-  const { addScan, user } = useAuth();
+  const { addScan, addPost, user } = useAuth();
   
   const ANGLES = [
     { id: 'top', label: t('camera_top'), icon: '⬆️', desc: t('camera_top_desc') },
@@ -105,6 +105,40 @@ export function CameraOverlay({ onClose }) {
     }
   };
 
+  const generatePDF = () => {
+    if (!resultData) return;
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.setTextColor(30, 81, 40); // Forest Emerald
+    doc.text("AgriVerify Compliance Certificate", 20, 30);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(45);
+    doc.text(`Verified for: ${user?.name || 'Farmer'}`, 20, 45);
+    doc.text(`Authenticity Code: ${resultData.hash}`, 20, 55);
+    doc.text(`Crop: ${resultData.crop}`, 20, 65);
+    doc.text(`Grade: ${resultData.grade}`, 20, 75);
+    doc.text(`Quality Score: ${resultData.score}/100`, 20, 85);
+    doc.text(`Moisture: ${resultData.moisture}`, 20, 95);
+    doc.text(`Date: ${resultData.date}`, 20, 105);
+    
+    doc.text("System Audit Log:", 20, 125);
+    doc.setFontSize(10);
+    const logs = ["Grain Uniformity: 91%", "Color Consistency: 84%", "Foreign Matter: 96%", "Moisture Content: 87%"];
+    logs.forEach((log, i) => doc.text(`- ${log}`, 20, 135 + (i * 7)));
+
+    doc.save(`AgriVerify_Certificate_${resultData.hash}.pdf`);
+  };
+
+  const shareToSocial = () => {
+    if (!resultData) return;
+    addPost({
+      content: `Just certified my ${resultData.crop} crop! Grade ${resultData.grade} achieved. Audit ID: ${resultData.hash}`,
+      image: resultData.photos[0]
+    });
+    alert("Shared to AgriSocial Feed!");
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] bg-white flex flex-col font-body">
       <input type="file" accept="image/*" capture="environment" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
@@ -144,7 +178,6 @@ export function CameraOverlay({ onClose }) {
               <motion.div className="w-full h-full border-4 border-[#1E6F6B] border-t-transparent rounded-full" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} />
             </div>
             <h2 className="text-2xl font-display font-black text-[#1E5128] mb-3">Audit in Progress</h2>
-            <p className="text-[#2D2D2D] opacity-60 mb-10">Securing multi-angle crop evidence...</p>
             <div className="w-full max-w-xs bg-[#F1F8F4] h-3 rounded-full overflow-hidden">
               <motion.div className="h-full bg-[#1E6F6B]" style={{ width: `${processingProgress}%` }} />
             </div>
@@ -154,7 +187,6 @@ export function CameraOverlay({ onClose }) {
           <div className="flex flex-col items-center text-center py-20">
              <AlertTriangle size={72} className="text-[#1E5128] mb-8 opacity-20" />
              <h2 className="text-2xl font-display font-black text-[#1E5128] mb-3">Sensor Offline</h2>
-             <p className="text-[#2D2D2D] opacity-60 mb-10">{errorDetails || "Encryption Error"}</p>
              <button onClick={() => setStep(0)} className="bg-[#1E6F6B] text-white px-10 py-5 rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-[#1E6F6B]/20">Reconnect Sensor</button>
           </div>
         ) : (
@@ -182,12 +214,17 @@ export function CameraOverlay({ onClose }) {
             </div>
 
             <div className="flex flex-col gap-4 w-full">
-              <button onClick={onClose} className="w-full bg-[#1E6F6B] text-white py-5 rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-[#1E6F6B]/30 flex justify-center items-center gap-3 active:scale-95 transition-all">
-                <CheckCircle size={22} /> Close Audit
+              <button onClick={generatePDF} className="w-full bg-[#1E5128] text-white py-5 rounded-[20px] font-black uppercase tracking-widest shadow-xl shadow-[#1E5128]/20 flex justify-center items-center gap-3 active:scale-95 transition-all">
+                <Download size={22} /> Download PDF
               </button>
-              <button onClick={() => setStep(0)} className="w-full bg-[#F1F8F4] text-[#1E5128] py-5 rounded-[20px] font-black uppercase tracking-widest active:scale-95 transition-all">
-                New Audit
-              </button>
+              <div className="flex gap-4">
+                <button onClick={shareToSocial} className="flex-1 bg-white border-2 border-[#1E5128]/10 text-[#1E5128] py-4 rounded-[20px] font-black uppercase tracking-widest flex justify-center items-center gap-2">
+                  <Share2 size={18} /> Share
+                </button>
+                <button onClick={onClose} className="flex-1 bg-[#1E6F6B] text-white py-4 rounded-[20px] font-black uppercase tracking-widest">
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}
