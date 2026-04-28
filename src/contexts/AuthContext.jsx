@@ -1,9 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, googleProvider, signInWithPopup, signInAnonymously, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
+import { useAuth0 } from '@auth0/auth0-react';
+import { db, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const { 
+    user: auth0User, 
+    isAuthenticated, 
+    isLoading: auth0Loading, 
+    loginWithRedirect, 
+    logout: auth0Logout 
+  } = useAuth0();
+
   const [user, setUser]         = useState(null);
   const [loading, setLoading]   = useState(true);
   const [posts, setPosts]       = useState([]);
@@ -13,33 +22,51 @@ export function AuthProvider({ children }) {
   const [socialGraph, setSocialGraph]   = useState({});
   const [scans, setScans]       = useState([]);
 
-  /* ─── Auth listener ─────────────────────────────────── */
+  // Sync Auth0 state with Firestore
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          const snap = await getDoc(doc(usersRef, firebaseUser.uid));
-          if (snap.exists()) {
-            setUser({ ...snap.data(), isNew: false });
-            setupListeners(firebaseUser.uid);
-          } else {
-            // Authenticated but no Firestore profile → onboarding
-            setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
-          }
-        } catch (err) {
-          console.error('Firestore sync error:', err);
-          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
+    if (auth0Loading) return;
+
+    if (!isAuthenticated) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    const checkProfile = async () => {
+      const uid = auth0User.sub;
+      
+      // 2-second watchdog for Firestore check
+      const watchdog = setTimeout(() => {
+        if (loading) {
+          console.warn("Profile check took too long (>2s). Defaulting to onboarding.");
+          setUser({ uid, email: auth0User.email, isNew: true });
+          setLoading(false);
         }
-      } else {
-        setUser(null);
+      }, 2000);
+
+      try {
+        const snap = await getDoc(doc(usersRef, uid));
+        clearTimeout(watchdog);
+        if (snap.exists()) {
+          setUser({ ...snap.data(), isNew: false });
+          setupListeners(uid);
+        } else {
+          setUser({ uid, email: auth0User.email, isNew: true });
+        }
+      } catch (err) {
+        console.error('Firestore sync error:', err);
+        clearTimeout(watchdog);
+        setUser({ uid, email: auth0User.email, isNew: true });
       }
       setLoading(false);
-    });
+    };
 
+    checkProfile();
+  }, [isAuthenticated, auth0User, auth0Loading]);
+
+  useEffect(() => {
     const saved = localStorage.getItem('agriverify_scans');
     if (saved) setScans(JSON.parse(saved));
-
-    return unsub;
   }, []);
 
   /* ─── Realtime listeners ─────────────────────────────── */
@@ -64,64 +91,28 @@ export function AuthProvider({ children }) {
   };
 
   /* ─── Auth actions ───────────────────────────────────── */
-  const loginWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged handles the rest
-    } catch (err) {
-      console.error('Google Sign-In error:', err);
-      if (err.code === 'auth/api-key-not-valid' || err.message.includes('API key')) {
-        console.warn('Invalid Firebase API Key. Entering Demo Mode.');
-        const mockUid = 'demo_google_' + Math.random().toString(36).substr(2, 9);
-        setUser({ uid: mockUid, email: 'demo_google@agriverify.app', isNew: true });
-        setLoading(false);
-      } else {
-        alert('Google Sign-In failed: ' + err.message);
-      }
-    }
-  };
-
-  // Phone OTP is simulated — create an anonymous Firebase session so the
-  // profile form has a real uid to save against in Firestore.
-  const loginWithPhone = async () => {
-    try {
-      await signInAnonymously(auth);
-      // onAuthStateChanged will fire → sets user = { uid, isNew: true }
-    } catch (err) {
-      console.error('Anonymous sign-in error:', err);
-      if (err.code === 'auth/api-key-not-valid' || err.message.includes('API key')) {
-        console.warn('Invalid Firebase API Key. Entering Demo Mode.');
-        // Bypass Firebase and set a local mock session so the app flow works
-        const mockUid = 'demo_user_' + Math.random().toString(36).substr(2, 9);
-        setUser({ uid: mockUid, email: 'demo@agriverify.app', isNew: true });
-        setLoading(false);
-      } else {
-        alert('Could not start phone session: ' + err.message);
-        throw err;
-      }
-    }
+  const login = () => loginWithRedirect();
+  
+  const logout = () => {
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+    setUser(null);
+    setPosts([]);
+    setFollowing([]);
   };
 
   const completeProfile = async (formData) => {
-    // Use uid from React state — never rely on auth.currentUser which can
-    // momentarily be null during Firebase token refresh cycles.
-    const uid = user?.uid || auth.currentUser?.uid;
+    const uid = auth0User?.sub;
     if (!uid) {
-      console.error("Session Check Failed. User State:", user, "Auth CurrentUser:", auth.currentUser);
-      alert('Your session could not be found. Please try logging in again. (Reason: No UID)');
+      alert('Your session could not be found. Please sign in again.');
       return;
     }
     setLoading(true);
     try {
-      const firebaseUser = auth.currentUser;
       const finalUser = {
         ...formData,
         uid,
-        email: user?.email || firebaseUser?.email || '',
-        avatar:
-          formData.avatar ||
-          firebaseUser?.photoURL ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
+        email: auth0User.email || '',
+        avatar: formData.avatar || auth0User.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
         nameLowerCase: formData.name.toLowerCase(),
         isPrivate: false,
         followersCount: 0,
@@ -129,28 +120,18 @@ export function AuthProvider({ children }) {
         isNew: false,
       };
 
-      // Try to save to Firestore, but catch errors if API key is invalid/missing
-      try {
-        await setDoc(doc(usersRef, uid), finalUser);
-        setupListeners(uid);
-      } catch (dbErr) {
-        console.warn("Firestore save skipped (Demo Mode):", dbErr.message);
-      }
-
+      await setDoc(doc(usersRef, uid), finalUser);
       setUser(finalUser);
+      setupListeners(uid);
+      
+      // CRITICAL: Immediate redirect as requested
+      window.location.assign('/dashboard');
     } catch (err) {
       console.error('Profile save failed:', err);
       alert('Failed to save profile: ' + err.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const logout = async () => {
-    await signOut(auth);
-    setUser(null);
-    setPosts([]);
-    setFollowing([]);
   };
 
   const updateProfile = async (updates) => {
@@ -233,16 +214,12 @@ export function AuthProvider({ children }) {
     localStorage.setItem('agriverify_scans', JSON.stringify(updated));
   };
 
-  // Compatibility shim for CameraFlow
-  const getAuthToken = async () => {
-    try { return await auth.currentUser?.getIdToken(); }
-    catch { return null; }
-  };
+  const getAuthToken = async () => null; // Not needed for Auth0 in this context
 
   return (
     <AuthContext.Provider value={{
       user, loading,
-      loginWithGoogle, loginWithPhone, completeProfile, logout, updateProfile,
+      login, logout, completeProfile, updateProfile,
       scans, addScan,
       posts, addPost,
       togglePrivacy, following, toggleFollow, socialGraph, searchUsers, followersCount,

@@ -2,18 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
-import { Phone, Mail, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ArrowRight, RefreshCw } from 'lucide-react';
 
 export function Auth() {
-  const { loginWithGoogle, loginWithPhone, completeProfile, user, loading } = useAuth();
+  const { login, completeProfile, user, loading } = useAuth();
   const { t } = useLang();
 
-  // step: 1 = choose method, 2 = phone entry, 3 = OTP, 4 = profile form
-  const [step, setStep]   = useState(1);
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp]     = useState('');
-  const [otpSent, setOtpSent]   = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  // step: 1 = choose method, 4 = profile form
+  const [step, setStep] = useState(1);
 
   const [form, setForm] = useState({
     name: '', dob: '', city: '', state: '', country: 'India', phone: '', gender: 'Male',
@@ -21,31 +17,10 @@ export function Auth() {
 
   // When user comes back authenticated but without a profile, jump to step 4
   useEffect(() => {
-    if (user && user.isNew) setStep(4);
-  }, [user]);
-
-  const handleSendOtp = (e) => {
-    e.preventDefault();
-    if (phone.length !== 10) { alert('Enter a valid 10-digit number'); return; }
-    setOtpSent(true);
-    setStep(3);
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    if (otp.length < 4) { alert('Enter the OTP'); return; }
-    setVerifying(true);
-    try {
-      // Create a real Firebase anonymous session so the profile form has a uid
-      await loginWithPhone();
-      setForm(p => ({ ...p, phone: `+91 ${phone}` }));
+    if (user && user.isNew) {
       setStep(4);
-    } catch {
-      // loginWithPhone already alerts the user
-    } finally {
-      setVerifying(false);
     }
-  };
+  }, [user]);
 
   const handleComplete = async (e) => {
     e.preventDefault();
@@ -72,22 +47,14 @@ export function Auth() {
             </div>
           </div>
 
-          {/* ── Step 1: Choose method ── */}
+          {/* ── Step 1: Login ── */}
           {step === 1 && (
             <div className="text-center">
               <h1 className="text-3xl font-display font-black text-white mb-2">AgriVerify AI</h1>
               <p className="text-gray-400 text-sm mb-10">Secure Crop Verification Platform</p>
 
               <button
-                onClick={() => setStep(2)}
-                className="w-full flex items-center justify-center gap-3 bg-agri-card hover:bg-agri-card2 border border-agri-border py-4 rounded-2xl mb-4 transition-colors"
-              >
-                <Phone size={20} className="text-agri-green" />
-                <span className="font-semibold text-white">{t('login_phone') || 'Continue with Phone'}</span>
-              </button>
-
-              <button
-                onClick={loginWithGoogle}
+                onClick={login}
                 className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 py-4 rounded-2xl transition-colors"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -98,54 +65,6 @@ export function Auth() {
                 </svg>
                 <span className="font-semibold text-black">{t('login_google') || 'Continue with Google'}</span>
               </button>
-            </div>
-          )}
-
-          {/* ── Step 2: Phone number ── */}
-          {step === 2 && (
-            <div>
-              <h2 className="text-2xl font-display font-black text-white mb-1">Enter Phone</h2>
-              <p className="text-gray-400 text-sm mb-6">We'll send a 6-digit OTP</p>
-              <form onSubmit={handleSendOtp} className="space-y-4">
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold border-r border-white/10 pr-3">+91</span>
-                  <input
-                    required
-                    type="tel"
-                    placeholder="10-digit number"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    className="w-full bg-agri-card border border-agri-border rounded-xl pl-16 pr-4 py-4 text-white placeholder-gray-500 focus:border-agri-green outline-none"
-                  />
-                </div>
-                <button type="submit" className="w-full bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white flex justify-center items-center gap-2 shadow-[0_8px_24px_rgba(34,197,94,0.25)]">
-                  Send OTP <ArrowRight size={18} />
-                </button>
-                <button type="button" onClick={() => setStep(1)} className="w-full text-gray-500 text-xs py-2">← Back</button>
-              </form>
-            </div>
-          )}
-
-          {/* ── Step 3: OTP verify ── */}
-          {step === 3 && (
-            <div>
-              <h2 className="text-2xl font-display font-black text-white mb-1">Enter OTP</h2>
-              <p className="text-gray-400 text-sm mb-6">Sent to +91 {phone}</p>
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <input
-                  required
-                  type="text"
-                  placeholder="••••••"
-                  value={otp}
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-4 text-center text-2xl tracking-[0.8em] text-white focus:border-agri-green outline-none"
-                />
-                <button disabled={verifying} type="submit" className="w-full bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white flex justify-center items-center gap-2 disabled:opacity-60">
-                  {verifying ? <RefreshCw size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
-                  {verifying ? 'Verifying…' : 'Verify & Continue'}
-                </button>
-                <button type="button" onClick={() => setStep(2)} className="w-full text-gray-500 text-xs py-2">← Resend / Change number</button>
-              </form>
             </div>
           )}
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LangProvider } from './contexts/LangContext';
 import { Auth } from './screens/Auth';
@@ -6,12 +7,15 @@ import { Layout } from './components/Layout';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [timedOut, setTimedOut] = useState(false);
 
-  // Safety: if still loading after 8s, show recovery screen
+  // Watchdog: If checking profile takes > 2s, force onboarding or dashboard based on state
   useEffect(() => {
-    if (!loading) { setTimedOut(false); return; }
-    const t = setTimeout(() => setTimedOut(true), 30000);
+    if (!loading) return;
+    const t = setTimeout(() => {
+      setTimedOut(true);
+    }, 2000);
     return () => clearTimeout(t);
   }, [loading]);
 
@@ -20,33 +24,20 @@ function AppContent() {
       <div className="h-screen w-screen bg-agri-bg flex flex-col items-center justify-center gap-4">
         <div className="w-12 h-12 border-4 border-agri-green border-t-transparent rounded-full animate-spin" />
         <p className="text-agri-green text-xs font-bold uppercase tracking-widest animate-pulse">
-          Loading AgriVerify...
+          Checking Compliance...
         </p>
       </div>
     );
   }
 
-  if (timedOut) {
-    return (
-      <div className="h-screen w-screen bg-agri-bg flex flex-col items-center justify-center p-6 text-center">
-        <div className="text-5xl mb-4">⚠️</div>
-        <h2 className="text-xl font-bold text-white mb-2">Connection Timeout</h2>
-        <p className="text-gray-400 text-sm mb-8">Trouble connecting to servers. Tap below to retry.</p>
-        <button
-          onClick={() => { localStorage.clear(); window.location.reload(); }}
-          className="bg-agri-green text-black px-8 py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition"
-        >
-          🔄 Retry
-        </button>
-      </div>
-    );
-  }
-
-  // user exists and has completed profile → Dashboard
-  if (user && !user.isNew) return <Layout />;
-
-  // no user or incomplete profile → Auth / Onboarding
-  return <Auth />;
+  return (
+    <Routes>
+      <Route path="/" element={user ? <Navigate to={user.isNew ? "/onboarding" : "/dashboard"} replace /> : <Auth />} />
+      <Route path="/onboarding" element={user ? <Auth /> : <Navigate to="/" replace />} />
+      <Route path="/dashboard" element={user && !user.isNew ? <Layout /> : <Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default function App() {
