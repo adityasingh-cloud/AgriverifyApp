@@ -24,7 +24,7 @@ export function Profile() {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset');
+        formData.append('upload_preset', 'Agriverify');
         
         const res = await fetch('https://api.cloudinary.com/v1_1/dc8suuh6h/image/upload', {
           method: 'POST',

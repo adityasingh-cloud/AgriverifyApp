@@ -73,12 +73,15 @@ export function CameraFlow({ onClose }) {
     }
   }, [step]);
 
+  const [errorDetails, setErrorDetails] = useState(null);
+
   const processAndUpload = async (capturedPhotos) => {
     try {
+      setErrorDetails(null);
       setProcessingProgress(10);
       
       const uploadedUrls = [];
-      const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+      const preset = 'Agriverify'; // Explicitly set to the user's preset name
       const cloudName = 'dc8suuh6h';
 
       for (let i = 0; i < capturedPhotos.length; i++) {
@@ -89,18 +92,30 @@ export function CameraFlow({ onClose }) {
           formData.append('file', capturedPhotos[i]);
           formData.append('upload_preset', preset);
 
+          // Use AbortController for custom timeout (30 seconds)
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000);
+
           const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
             method: 'POST',
-            body: formData
+            body: formData,
+            signal: controller.signal
           });
           
-          if (!res.ok) throw new Error("Cloudinary upload failed");
+          clearTimeout(timeoutId);
+          
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error?.message || `HTTP ${res.status}: Upload failed`);
+          }
           
           const data = await res.json();
           uploadedUrls.push(data.secure_url);
         } catch (uploadError) {
-          console.warn("Cloudinary upload failed, falling back to local base64.", uploadError);
-          uploadedUrls.push(capturedPhotos[i]); // Fallback
+          console.error("Cloudinary Upload Detail:", uploadError);
+          const msg = uploadError.name === 'AbortError' ? 'Upload Timeout (30s)' : uploadError.message;
+          setErrorDetails(`Photo ${i+1}: ${msg}`);
+          throw new Error(msg); // Stop the loop and trigger global catch
         }
       }
 
@@ -129,10 +144,16 @@ export function CameraFlow({ onClose }) {
       }, 500);
 
     } catch (e) {
-      console.error(e);
-      alert("An error occurred during verification.");
-      onClose();
+      console.error("Verification Global Error:", e);
+      setProcessingProgress(0); // Reset progress on failure
+      setStep(5); // Error state
     }
+  };
+
+  const handleRetry = () => {
+    setErrorDetails(null);
+    setStep(3); // Go back to processing
+    processAndUpload(photos);
   };
 
   const generatePDF = () => {
@@ -251,6 +272,26 @@ export function CameraFlow({ onClose }) {
             <motion.div className="h-full bg-agri-green transition-all duration-300" style={{ width: `${processingProgress}%` }} />
           </div>
           <div className="text-agri-green font-bold mt-2">{processingProgress}%</div>
+        </div>
+      ) : step === 5 ? (
+        <div className="flex-1 bg-agri-bg flex flex-col items-center justify-center p-8 text-center">
+          <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mb-6 border border-red-500/40">
+            <X size={40} className="text-red-500" />
+          </div>
+          <h2 className="text-2xl font-display font-black text-white mb-2">Verification Error</h2>
+          <p className="text-gray-400 text-sm mb-2">Something went wrong during the 60% mark.</p>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-8 w-full max-w-xs">
+            <div className="text-[10px] text-red-400 uppercase font-bold mb-1">Error Message</div>
+            <div className="text-xs text-red-200 font-mono break-all">{errorDetails || "Unknown Upload Failure"}</div>
+          </div>
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <button onClick={handleRetry} className="w-full bg-white text-black py-4 rounded-xl font-bold flex justify-center items-center gap-2">
+              <RefreshCw size={18} /> Retry Upload
+            </button>
+            <button onClick={onClose} className="w-full bg-agri-card border border-agri-border py-4 rounded-xl font-bold text-white">
+              {t('cancel')}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex-1 bg-agri-bg overflow-y-auto hide-scrollbar p-6 pt-24 pb-32 flex flex-col items-center text-center">
