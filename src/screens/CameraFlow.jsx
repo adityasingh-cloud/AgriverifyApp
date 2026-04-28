@@ -6,15 +6,16 @@ import { jsPDF } from 'jspdf';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 
-const ANGLES = [
-  { id: 'top', label: 'Top View', icon: '⬆️', desc: 'Hold camera directly above' },
-  { id: 'side', label: 'Side View', icon: '➡️', desc: 'Tilt 45° for side profile' },
-  { id: 'bottom', label: 'Bottom View', icon: '⬇️', desc: 'Flip and capture base' },
-];
-
 export function CameraFlow({ onClose }) {
-  const { speakSlowly } = useLang();
+  const { t, speakSlowly } = useLang();
   const { addScan, addPost, user } = useAuth();
+  
+  const ANGLES = [
+    { id: 'top', label: t('camera_top'), icon: '⬆️', desc: t('camera_top_desc') },
+    { id: 'side', label: t('camera_side'), icon: '➡️', desc: t('camera_side_desc') },
+    { id: 'bottom', label: t('camera_bottom'), icon: '⬇️', desc: t('camera_bottom_desc') },
+  ];
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -62,7 +63,7 @@ export function CameraFlow({ onClose }) {
   };
 
   const generateHash = (score) => {
-    const cropID = "20"; // Hardcoded for Wheat/Example
+    const cropID = "20";
     const grade = score.toString().padStart(2, '0');
     const start = new Date(new Date().getFullYear(), 0, 0);
     const diff = new Date() - start;
@@ -96,7 +97,7 @@ export function CameraFlow({ onClose }) {
       if (progress >= 100) {
         clearInterval(interval);
         
-        const score = 88; // Example simulated score
+        const score = 88;
         const hash = generateHash(score);
         const data = {
           hash,
@@ -124,7 +125,6 @@ export function CameraFlow({ onClose }) {
     if (!resultData) return;
     const doc = new jsPDF();
     
-    // Header & Seal
     doc.setFontSize(22);
     doc.setTextColor(34, 197, 94);
     doc.text("Global Agricultural Compliance Certificate", 20, 30);
@@ -133,12 +133,10 @@ export function CameraFlow({ onClose }) {
     doc.setTextColor(100);
     doc.text("Verified by AgriVerify AI - Certified Learvon Partner", 20, 40);
     
-    // Hash
     doc.setFontSize(16);
     doc.setTextColor(0);
     doc.text(`Authenticity Code: ${resultData.hash}`, 20, 60);
     
-    // Details
     doc.setFontSize(12);
     doc.text(`Crop: ${resultData.crop}`, 20, 75);
     doc.text(`Grade: ${resultData.grade}`, 20, 85);
@@ -147,7 +145,6 @@ export function CameraFlow({ onClose }) {
     doc.text(`Estimated Shelf-Life: ${resultData.shelfLife}`, 20, 115);
     doc.text(`Date: ${resultData.date}`, 20, 125);
     
-    // Quality Checks (Mock 10 checks)
     doc.setFontSize(14);
     doc.text("World-Recognized Quality Checks:", 20, 145);
     doc.setFontSize(10);
@@ -156,7 +153,6 @@ export function CameraFlow({ onClose }) {
       doc.text(`${idx + 1}. ${chk}`, 20, 155 + (idx * 6));
     });
 
-    // Embed Photos
     if (resultData.photos && resultData.photos.length === 3) {
       doc.addPage();
       doc.setFontSize(16);
@@ -165,9 +161,7 @@ export function CameraFlow({ onClose }) {
         doc.addImage(resultData.photos[0], 'JPEG', 20, 30, 80, 80);
         doc.addImage(resultData.photos[1], 'JPEG', 110, 30, 80, 80);
         doc.addImage(resultData.photos[2], 'JPEG', 65, 120, 80, 80);
-      } catch (e) {
-        console.error("Failed to add image to PDF", e);
-      }
+      } catch (e) {}
     }
 
     doc.save(`AgriVerify_Certificate_${resultData.hash}.pdf`);
@@ -183,22 +177,17 @@ export function CameraFlow({ onClose }) {
       likes: 0,
       comments: 0,
       isLiked: false,
-      image: resultData.photos[0] // Share the first photo
+      image: resultData.photos[0],
+      userId: 'currentUser'
     });
     alert("Successfully shared to AgriSocial!");
     onClose();
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: '100%' }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: '100%' }}
-      className="fixed inset-0 z-50 bg-black flex flex-col"
-    >
+    <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} className="fixed inset-0 z-50 bg-black flex flex-col">
       <canvas ref={canvasRef} style={{ display: 'none' }} />
       
-      {/* Top Bar */}
       <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-10 bg-gradient-to-b from-black/80 to-transparent">
         <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
           <X size={20} />
@@ -213,14 +202,8 @@ export function CameraFlow({ onClose }) {
       </div>
 
       {step < 3 ? (
-        // CAMERA VIEW
         <div className="flex-1 relative flex flex-col justify-end pb-12">
-          <video 
-            ref={videoRef} 
-            autoPlay playsInline muted 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          {/* Overlay UI */}
+          <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <div className="w-[70%] aspect-square border-2 border-dashed border-agri-green rounded-3xl relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
               <div className="absolute top-1/2 left-0 w-full h-0.5 bg-agri-green/50 shadow-[0_0_15px_rgba(34,197,94,1)] animate-pulse" />
@@ -235,40 +218,27 @@ export function CameraFlow({ onClose }) {
           </div>
           
           <div className="relative z-10 flex justify-center w-full px-8 pb-8">
-            <button 
-              onClick={handleCapture}
-              className="w-20 h-20 rounded-full border-4 border-agri-green flex items-center justify-center bg-black/20 backdrop-blur-md hover:scale-95 transition-transform"
-            >
+            <button onClick={handleCapture} className="w-20 h-20 rounded-full border-4 border-agri-green flex items-center justify-center bg-black/20 backdrop-blur-md hover:scale-95 transition-transform">
               <div className="w-16 h-16 rounded-full bg-white" />
             </button>
           </div>
         </div>
       ) : step === 3 ? (
-        // PROCESSING VIEW
         <div className="flex-1 bg-agri-bg flex flex-col items-center justify-center p-8 text-center">
           <div className="w-32 h-32 relative mb-8 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full border-4 border-agri-green/20" />
-            <motion.div 
-              className="absolute inset-0 rounded-full border-4 border-agri-green border-t-transparent"
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-            />
+            <motion.div className="absolute inset-0 rounded-full border-4 border-agri-green border-t-transparent" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} />
             <span className="text-4xl">🔬</span>
           </div>
-          <h2 className="text-2xl font-display font-black text-white mb-2">Generating Authentic Hash...</h2>
-          <p className="text-gray-400 text-sm mb-8">Securing batch data on the ledger</p>
+          <h2 className="text-2xl font-display font-black text-white mb-2">{t('processing')}</h2>
+          <p className="text-gray-400 text-sm mb-8">{t('securing')}</p>
           
           <div className="w-full max-w-xs bg-agri-card h-2 rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-agri-green"
-              initial={{ width: 0 }}
-              animate={{ width: `${processingProgress}%` }}
-            />
+            <motion.div className="h-full bg-agri-green" initial={{ width: 0 }} animate={{ width: `${processingProgress}%` }} />
           </div>
           <div className="text-agri-green font-bold mt-2">{processingProgress}%</div>
         </div>
       ) : (
-        // RESULT VIEW
         <div className="flex-1 bg-agri-bg overflow-y-auto hide-scrollbar p-6 pt-24 pb-32 flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-agri-green/10 border border-agri-green/30 mb-4">
             <span className="w-2 h-2 rounded-full bg-agri-green animate-pulse" />
@@ -280,11 +250,7 @@ export function CameraFlow({ onClose }) {
 
           <div className="w-full max-w-sm bg-agri-card border border-agri-border rounded-3xl p-6 mb-6 flex flex-col items-center shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
             <div className="bg-white p-3 rounded-2xl mb-4 shadow-[0_0_20px_rgba(34,197,94,0.3)]" ref={qrRef}>
-              <QRCode 
-                value={JSON.stringify({ hash: resultData?.hash, score: resultData?.score, moisture: resultData?.moisture })}
-                size={160}
-                level="H"
-              />
+              <QRCode value={JSON.stringify({ hash: resultData?.hash, score: resultData?.score, moisture: resultData?.moisture })} size={160} level="H" />
             </div>
             <div className="grid grid-cols-2 gap-4 w-full text-left mt-4">
               <div className="bg-agri-card2 p-3 rounded-xl border border-white/5">
@@ -304,14 +270,14 @@ export function CameraFlow({ onClose }) {
 
           <div className="flex flex-col gap-3 w-full max-w-sm">
             <button onClick={generatePDF} className="w-full bg-gradient-to-r from-agri-green to-agri-green-dim py-4 rounded-xl font-bold text-white shadow-[0_8px_24px_rgba(34,197,94,0.2)] flex justify-center items-center gap-2">
-              <Download size={18} /> Download Compliance PDF
+              <Download size={18} /> {t('download_pdf')}
             </button>
             <div className="flex gap-3">
               <button onClick={shareToCommunity} className="flex-1 bg-agri-card border border-agri-border py-4 rounded-xl font-bold text-blue-400 flex justify-center items-center gap-2">
-                <Share2 size={18} /> Share
+                <Share2 size={18} /> {t('share')}
               </button>
               <button onClick={() => { setStep(0); setPhotos([]); }} className="flex-1 bg-agri-card border border-agri-border py-4 rounded-xl font-bold text-white flex justify-center items-center gap-2">
-                <RefreshCw size={18} /> Restart
+                <RefreshCw size={18} /> {t('restart')}
               </button>
             </div>
           </div>

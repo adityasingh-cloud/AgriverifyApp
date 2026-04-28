@@ -1,13 +1,14 @@
 import React from 'react';
-import { Home, Users, Camera, MessageSquare, User } from 'lucide-react';
+import { Home, Users, Camera, Newspaper, User } from 'lucide-react';
+import { useLang } from '../contexts/LangContext';
 
 export function Navigation({ currentTab, setCurrentTab, onCameraClick }) {
+  const { t } = useLang();
   return (
     <div className="fixed bottom-0 w-full bg-agri-bg/80 backdrop-blur-md border-t border-white/10 px-6 py-4 pb-8 flex justify-between items-center z-40">
-      <NavItem icon={<Home size={24} />} label="Home" active={currentTab === 'dashboard'} onClick={() => setCurrentTab('dashboard')} />
-      <NavItem icon={<Users size={24} />} label="Community" active={currentTab === 'community'} onClick={() => setCurrentTab('community')} />
+      <NavItem icon={<Home size={24} />} label={t('dashboard')} active={currentTab === 'dashboard'} onClick={() => setCurrentTab('dashboard')} />
+      <NavItem icon={<Users size={24} />} label={t('community')} active={currentTab === 'community'} onClick={() => setCurrentTab('community')} />
       
-      {/* Center Floating Camera */}
       <div className="relative -top-6">
         <button 
           onClick={onCameraClick}
@@ -17,8 +18,8 @@ export function Navigation({ currentTab, setCurrentTab, onCameraClick }) {
         </button>
       </div>
 
-      <NavItem icon={<MessageSquare size={24} />} label="Support" active={currentTab === 'support'} onClick={() => setCurrentTab('support')} />
-      <NavItem icon={<User size={24} />} label="Profile" active={currentTab === 'profile'} onClick={() => setCurrentTab('profile')} />
+      <NavItem icon={<Newspaper size={24} />} label={t('news')} active={currentTab === 'news'} onClick={() => setCurrentTab('news')} />
+      <NavItem icon={<User size={24} />} label={t('profile')} active={currentTab === 'profile'} onClick={() => setCurrentTab('profile')} />
     </div>
   );
 }

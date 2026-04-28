@@ -24,12 +24,10 @@ export function Dashboard() {
     
     setIsVerifying(true);
     setTimeout(() => {
-      // Find scan locally, or mock
       const found = scans.find(s => s.hash === searchCode);
       if (found) {
         setVerifyResult(found);
       } else {
-        // Mock a success if not found for demo
         setVerifyResult({
           hash: searchCode,
           crop: "Wheat",
@@ -48,7 +46,6 @@ export function Dashboard() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 pt-8 relative">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <p className="text-xs text-gray-400 mb-1">{t('good_morning')} 🌤️</p>
@@ -61,15 +58,14 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Verify Batch Portal */}
       <div className="mb-8 relative z-10">
-        <h2 className="text-sm font-bold text-white mb-3">Verify Authenticity Batch</h2>
+        <h2 className="text-sm font-bold text-white mb-3">{t('verify_batch')}</h2>
         <form onSubmit={handleVerify} className="relative flex items-center">
           <Search className="absolute left-4 text-gray-400" size={18} />
           <input 
             value={searchCode}
             onChange={(e) => setSearchCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 12))}
-            placeholder="Enter 12-Digit Smart-Hash..."
+            placeholder={t('enter_hash')}
             className="w-full bg-agri-card border border-agri-border rounded-2xl py-4 pl-12 pr-24 text-sm text-white focus:border-agri-green outline-none transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.2)]"
           />
           <button 
@@ -77,12 +73,11 @@ export function Dashboard() {
             disabled={searchCode.length !== 12 || isVerifying}
             className="absolute right-2 bg-agri-green text-black px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-50 transition-opacity"
           >
-            {isVerifying ? 'Wait..' : 'Verify'}
+            {isVerifying ? t('wait') : t('verify')}
           </button>
         </form>
       </div>
 
-      {/* Stats Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-agri-green/15 to-agri-green/5 border border-agri-green/20 p-5 flex mb-6">
         <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full bg-agri-green/20 blur-xl" />
         {[
@@ -97,7 +92,6 @@ export function Dashboard() {
         ))}
       </div>
 
-      {/* Personal Scans List */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-3">
           <span className="text-sm font-bold text-white">{t('recent_scans')}</span>
@@ -122,17 +116,10 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Verification Modal */}
       <AnimatePresence>
         {showModal && verifyResult && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-agri-bg border border-agri-green/30 w-full max-w-sm rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(34,197,94,0.15)] flex flex-col max-h-[85vh]"
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-agri-bg border border-agri-green/30 w-full max-w-sm rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(34,197,94,0.15)] flex flex-col max-h-[85vh]">
               <div className="p-4 border-b border-white/5 flex justify-between items-center bg-agri-card">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="text-agri-green" size={20} />

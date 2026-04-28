@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Navigation } from './Navigation';
 import { Dashboard } from '../screens/Dashboard';
 import { Community } from '../screens/Community';
-import { Support } from '../screens/Support';
+import { News } from '../screens/News';
 import { Profile } from '../screens/Profile';
 import { CameraFlow } from '../screens/CameraFlow';
 import { AnimatePresence } from 'framer-motion';
@@ -16,7 +16,7 @@ export function Layout() {
       <div className="flex-1 overflow-y-auto hide-scrollbar pb-24">
         {currentTab === 'dashboard' && <Dashboard />}
         {currentTab === 'community' && <Community />}
-        {currentTab === 'support' && <Support />}
+        {currentTab === 'news' && <News />}
         {currentTab === 'profile' && <Profile />}
       </div>
       

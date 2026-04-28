@@ -1,44 +1,56 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LogOut, Volume2, Globe, Shield, User as UserIcon, Award } from 'lucide-react';
+import { LogOut, Volume2, Globe, Shield, User as UserIcon, Award, Lock, Unlock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
 export function Profile() {
-  const { user, logout } = useAuth();
-  const { lang, setLang, voiceGender, setVoiceGender, availableLangs } = useLang();
+  const { user, logout, isPrivate, togglePrivacy } = useAuth();
+  const { lang, setLang, voiceGender, setVoiceGender, availableLangs, t } = useLang();
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6">
-      <h1 className="text-2xl font-display font-black text-white mb-6">Profile Settings</h1>
+      <h1 className="text-2xl font-display font-black text-white mb-6">{t('profile_settings')}</h1>
       
       <div className="bg-agri-card border border-agri-border rounded-2xl mb-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-agri-green to-agri-green-dim" />
-        <div className="p-4 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-agri-green/20 border border-agri-green/40 flex items-center justify-center text-3xl">
-            {user?.gender === 'Female' ? '👩🏽‍🌾' : '👨🏽‍🌾'}
-          </div>
-          <div>
-            <div className="text-lg font-bold text-white flex items-center gap-2">
-              {user?.name}
+        <div className="p-4 flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-agri-green/20 border border-agri-green/40 flex items-center justify-center text-3xl">
+              {user?.gender === 'Female' ? '👩🏽‍🌾' : '👨🏽‍🌾'}
             </div>
-            <div className="text-xs text-gray-400 mb-1">{user?.phone}</div>
-            <div className="flex items-center gap-1.5 bg-agri-green/10 border border-agri-green/30 px-2 py-0.5 rounded-md inline-flex">
-              <Award className="text-agri-green" size={12} />
-              <span className="text-[10px] text-agri-green font-bold uppercase tracking-wider">Certified Learvon Partner</span>
+            <div>
+              <div className="text-lg font-bold text-white flex items-center gap-2">
+                {user?.name}
+              </div>
+              <div className="text-xs text-gray-400 mb-1">{user?.phone}</div>
+              <div className="flex items-center gap-1.5 bg-agri-green/10 border border-agri-green/30 px-2 py-0.5 rounded-md inline-flex">
+                <Award className="text-agri-green" size={12} />
+                <span className="text-[10px] text-agri-green font-bold uppercase tracking-wider">{t('certified_partner')}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-6 mt-2 border-t border-white/5 pt-4">
+            <div className="text-center flex-1">
+              <div className="text-lg font-bold text-white">1.2k</div>
+              <div className="text-[10px] text-gray-400 uppercase">{t('followers')}</div>
+            </div>
+            <div className="text-center flex-1">
+              <div className="text-lg font-bold text-white">145</div>
+              <div className="text-[10px] text-gray-400 uppercase">{t('following')}</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 pb-12">
         {/* Language Settings */}
         <div>
-          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">Language & Voice</div>
+          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">{t('app_language')}</div>
           <div className="bg-agri-card border border-agri-border rounded-2xl overflow-hidden">
             <div className="p-4 border-b border-agri-border flex flex-col gap-3">
               <div className="flex items-center gap-3 text-sm text-white font-semibold">
-                <Globe className="text-blue-400" size={18} /> App Language
+                <Globe className="text-blue-400" size={18} /> {t('app_language')}
               </div>
               <div className="flex flex-wrap gap-2">
                 {availableLangs.map(l => (
@@ -54,7 +66,7 @@ export function Profile() {
             </div>
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3 text-sm text-white font-semibold">
-                <Volume2 className="text-agri-yellow" size={18} /> AI Voice Assistant
+                <Volume2 className="text-agri-yellow" size={18} /> {t('ai_voice')}
               </div>
               <div className="flex bg-agri-bg rounded-lg p-1 border border-agri-border">
                 {['Male', 'Female'].map(g => (
@@ -73,19 +85,33 @@ export function Profile() {
 
         {/* Security & Account */}
         <div>
-          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">Account</div>
+          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">{t('account')}</div>
           <div className="bg-agri-card border border-agri-border rounded-2xl overflow-hidden">
+            
+            <div className="p-4 border-b border-agri-border flex items-center justify-between">
+              <div className="flex items-center gap-3 text-sm text-white font-semibold">
+                {isPrivate ? <Lock className="text-gray-400" size={18} /> : <Unlock className="text-agri-green" size={18} />}
+                {t('private_profile')}
+              </div>
+              <button 
+                onClick={togglePrivacy}
+                className={`w-12 h-6 rounded-full p-1 transition-colors ${isPrivate ? 'bg-agri-green' : 'bg-gray-600'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isPrivate ? 'translate-x-6' : 'translate-x-0'}`} />
+              </button>
+            </div>
+
             <button className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors">
-              <UserIcon className="text-purple-400" size={18} /> Edit Profile Info
+              <UserIcon className="text-purple-400" size={18} /> {t('edit_profile')}
             </button>
             <button className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors">
-              <Shield className="text-green-400" size={18} /> Data & Privacy Settings
+              <Shield className="text-green-400" size={18} /> {t('data_privacy')}
             </button>
             <button 
               onClick={logout}
               className="w-full p-4 flex items-center gap-3 text-sm text-red-400 font-bold hover:bg-red-500/10 transition-colors"
             >
-              <LogOut size={18} /> Secure Logout
+              <LogOut size={18} /> {t('secure_logout')}
             </button>
           </div>
         </div>
