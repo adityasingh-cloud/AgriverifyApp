@@ -62,7 +62,7 @@ const CHAT_INIT = [
 
 function Pill({ children, color = T.green, style = {} }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", background: color + "20", border: \`1px solid \${color}40\`, color, ...style }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", background: color + "20", border: `1px solid ${color}40`, color, ...style }}>
       {children}
     </span>
   );
@@ -88,8 +88,8 @@ function RadialProgress({ value, size = 64, color = T.green, label, sublabel }) 
         <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={5} />
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={5}
-            strokeDasharray={\`\${dash} \${circ}\`} strokeLinecap="round"
-            style={{ filter: \`drop-shadow(0 0 4px \${color})\`, transition: "stroke-dasharray 1s ease" }} />
+            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+            style={{ filter: `drop-shadow(0 0 4px ${color})`, transition: "stroke-dasharray 1s ease" }} />
         </svg>
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <span style={{ fontSize: size > 56 ? 14 : 11, fontWeight: 800, color: T.white }}>{value}%</span>
@@ -103,7 +103,7 @@ function RadialProgress({ value, size = 64, color = T.green, label, sublabel }) 
 function LinearBar({ value, color = T.green, height = 4 }) {
   return (
     <div style={{ width: "100%", height, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-      <div style={{ height: "100%", width: \`\${value}%\`, borderRadius: 99, background: color, boxShadow: \`0 0 8px \${color}80\`, transition: "width 1s ease" }} />
+      <div style={{ height: "100%", width: `${value}%`, borderRadius: 99, background: color, boxShadow: `0 0 8px ${color}80`, transition: "width 1s ease" }} />
     </div>
   );
 }
@@ -121,7 +121,7 @@ function QRCode({ size = 80 }) {
     [1,1,1,1,1,1,1],
   ];
   return (
-    <div style={{ width: size, height: size, background: "#fff", padding: 4, borderRadius: 8, display: "grid", gridTemplateColumns: \`repeat(\${cells},\${cell - 1.1}px)\`, gap: 1, boxShadow: \`0 0 20px \${T.greenGlow}\` }}>
+    <div style={{ width: size, height: size, background: "#fff", padding: 4, borderRadius: 8, display: "grid", gridTemplateColumns: `repeat(${cells},${cell - 1.1}px)`, gap: 1, boxShadow: `0 0 20px ${T.greenGlow}` }}>
       {pattern.flat().map((v, i) => (
         <div key={i} style={{ width: cell - 1.1, height: cell - 1.1, background: v ? "#0a0a0a" : "#fff", borderRadius: 1 }} />
       ))}
@@ -143,7 +143,7 @@ function Dashboard({ onScan }) {
           <h1 style={{ fontSize: 22, fontWeight: 800, color: T.white, fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>Ramesh Kumar</h1>
         </div>
         <div style={{ position: "relative" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg,#22c55e,#16a34a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: \`0 0 20px \${T.greenGlow}\` }}>👨🌾</div>
+          <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg,#22c55e,#16a34a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: `0 0 20px ${T.greenGlow}` }}>👨🌾</div>
           <div style={{ position: "absolute", top: -2, right: -2, width: 12, height: 12, borderRadius: 99, background: T.yellow, border: "2px solid #0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontSize: 7, color: "#000", fontWeight: 800 }}>3</span>
           </div>
@@ -162,7 +162,7 @@ function Dashboard({ onScan }) {
       </div>
 
       {/* Quick Scan CTA */}
-      <div onClick={onScan} style={{ margin: "0 20px 16px", borderRadius: 18, background: "linear-gradient(135deg,#22c55e,#16a34a)", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", boxShadow: \`0 8px 32px \${T.greenGlow}, 0 0 0 1px rgba(34,197,94,0.3)\`, active: { transform: "scale(0.98)" } }}>
+      <div onClick={onScan} style={{ margin: "0 20px 16px", borderRadius: 18, background: "linear-gradient(135deg,#22c55e,#16a34a)", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", boxShadow: `0 8px 32px ${T.greenGlow}, 0 0 0 1px rgba(34,197,94,0.3)`, active: { transform: "scale(0.98)" } }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>Scan New Crop</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>AI + Blockchain verification</div>
@@ -178,7 +178,7 @@ function Dashboard({ onScan }) {
         </div>
         <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }} className="hide-scrollbar">
           {RECENT_SCANS.map(s => (
-            <div key={s.id} style={{ flexShrink: 0, width: 110, borderRadius: 16, background: T.card, border: \`1px solid \${T.border}\`, padding: "12px 10px", cursor: "pointer" }}>
+            <div key={s.id} style={{ flexShrink: 0, width: 110, borderRadius: 16, background: T.card, border: `1px solid ${T.border}`, padding: "12px 10px", cursor: "pointer" }}>
               <div style={{ width: 48, height: 48, borderRadius: 13, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, margin: "0 auto 8px" }}>{s.emoji}</div>
               <div style={{ fontSize: 12, fontWeight: 700, color: T.white, textAlign: "center" }}>{s.crop}</div>
               <div style={{ display: "flex", justifyContent: "center", marginTop: 6 }}>
@@ -198,7 +198,7 @@ function Dashboard({ onScan }) {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {RECENT_SCANS.slice(0, 2).map(s => (
-            <div key={s.id} style={{ borderRadius: 16, background: T.card, border: \`1px solid \${T.border}\`, padding: "14px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <div key={s.id} style={{ borderRadius: 16, background: T.card, border: `1px solid ${T.border}`, padding: "14px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer" }}>
               <QRCode size={72} />
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: T.white }}>{s.crop}</div>
@@ -217,7 +217,7 @@ function Dashboard({ onScan }) {
           <Pill color={T.green}><span style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, display: "inline-block", animation: "blinkDot 1.5s infinite" }} /> LIVE</Pill>
         </div>
         {[["Wheat 🌾", "₹6,450", "+2.3%", T.green], ["Rice 🍚", "₹4,820", "-0.8%", T.red], ["Cotton ☁️", "₹7,100", "+1.1%", T.green]].map(([c, p, ch, col]) => (
-          <div key={c} style={{ display: "flex", alignItems: "center", padding: "12px 14px", borderRadius: 14, background: T.card, border: \`1px solid \${T.border}\`, marginBottom: 8 }}>
+          <div key={c} style={{ display: "flex", alignItems: "center", padding: "12px 14px", borderRadius: 14, background: T.card, border: `1px solid ${T.border}`, marginBottom: 8 }}>
             <span style={{ fontSize: 16, marginRight: 10 }}>{c.split(" ")[1]}</span>
             <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: T.white }}>{c.split(" ")[0]}</span>
             <span style={{ fontSize: 14, fontWeight: 800, color: T.white, marginRight: 8 }}>{p}</span>
@@ -286,15 +286,15 @@ function AnalysisFlow({ onClose }) {
       <div style={{ padding: "56px 24px 24px", flex: 1, display: "flex", flexDirection: "column" }}>
         <button onClick={onClose} style={{ background: "none", border: "none", color: T.gray1, fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, marginBottom: 32, padding: 0 }}>← Back</button>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 24 }}>
-          <div style={{ width: 100, height: 100, borderRadius: 28, background: "linear-gradient(135deg,rgba(34,197,94,0.2),rgba(34,197,94,0.05))", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 50, boxShadow: \`0 0 40px \${T.greenGlow}\` }}>🌾</div>
+          <div style={{ width: 100, height: 100, borderRadius: 28, background: "linear-gradient(135deg,rgba(34,197,94,0.2),rgba(34,197,94,0.05))", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 50, boxShadow: `0 0 40px ${T.greenGlow}` }}>🌾</div>
           <div>
             <h2 style={{ fontSize: 26, fontWeight: 900, color: T.white, marginBottom: 10, fontFamily: "var(--font-display)" }}>Crop Analysis</h2>
             <p style={{ fontSize: 14, color: T.gray1, lineHeight: 1.6, maxWidth: 280 }}>We'll capture 3 angles of your crop for the most accurate AI grade. Takes about 60 seconds.</p>
           </div>
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
             {CAPTURE_STEPS.map((s, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 14, background: T.card, border: \`1px solid \${T.border}\` }}>
-                <div style={{ width: 38, height: 38, borderRadius: 11, background: s.color + "20", border: \`1px solid \${s.color}40\`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{s.icon}</div>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 14, background: T.card, border: `1px solid ${T.border}` }}>
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: s.color + "20", border: `1px solid ${s.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{s.icon}</div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.white }}>Step {i + 1}: {s.label}</div>
                   <div style={{ fontSize: 11, color: T.gray1 }}>{s.instruction}</div>
@@ -307,11 +307,11 @@ function AnalysisFlow({ onClose }) {
               <div style={{ fontSize: 12, color: T.gray1, marginBottom: 8, textAlign: "left" }}>Result Language</div>
               <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
                 {LANGS.map(l => (
-                  <button key={l} onClick={() => setSelectedLang(l)} style={{ padding: "6px 12px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: selectedLang === l ? T.green : T.card, color: selectedLang === l ? "#000" : T.gray1, border: \`1px solid \${selectedLang === l ? T.green : T.border}\`, cursor: "pointer", transition: "all .2s" }}>{l}</button>
+                  <button key={l} onClick={() => setSelectedLang(l)} style={{ padding: "6px 12px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: selectedLang === l ? T.green : T.card, color: selectedLang === l ? "#000" : T.gray1, border: `1px solid ${selectedLang === l ? T.green : T.border}`, cursor: "pointer", transition: "all .2s" }}>{l}</button>
                 ))}
               </div>
             </div>
-            <button onClick={() => setStep(1)} style={{ width: "100%", padding: "16px", borderRadius: 16, background: "linear-gradient(135deg,#22c55e,#16a34a)", color: "#fff", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 800, boxShadow: \`0 8px 32px \${T.greenGlow}\` }}>
+            <button onClick={() => setStep(1)} style={{ width: "100%", padding: "16px", borderRadius: 16, background: "linear-gradient(135deg,#22c55e,#16a34a)", color: "#fff", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 800, boxShadow: `0 8px 32px ${T.greenGlow}` }}>
               Start Analysis →
             </button>
           </div>
@@ -334,23 +334,23 @@ function AnalysisFlow({ onClose }) {
             <div style={{ fontSize: 80, opacity: 0.3 }}>{step === 1 ? "⬆️" : step === 2 ? "➡️" : "⬇️"}</div>
           </div>
           {/* Crop frame */}
-          <div style={{ position: "absolute", inset: "15%", border: \`2px solid \${cs.color}\`, borderRadius: 20, boxShadow: \`0 0 0 9999px rgba(0,0,0,0.55), inset 0 0 30px \${cs.color}20\` }}>
+          <div style={{ position: "absolute", inset: "15%", border: `2px solid ${cs.color}`, borderRadius: 20, boxShadow: `0 0 0 9999px rgba(0,0,0,0.55), inset 0 0 30px ${cs.color}20` }}>
             {/* Corner marks */}
             {[[0, 0], [0, 1], [1, 0], [1, 1]].map(([t, l], i) => (
-              <div key={i} style={{ position: "absolute", top: t ? "auto" : -2, bottom: t ? -2 : "auto", left: l ? "auto" : -2, right: l ? -2 : "auto", width: 20, height: 20, borderTop: t ? "none" : \`3px solid \${cs.color}\`, borderBottom: t ? \`3px solid \${cs.color}\` : "none", borderLeft: l ? "none" : \`3px solid \${cs.color}\`, borderRight: l ? \`3px solid \${cs.color}\` : "none" }} />
+              <div key={i} style={{ position: "absolute", top: t ? "auto" : -2, bottom: t ? -2 : "auto", left: l ? "auto" : -2, right: l ? -2 : "auto", width: 20, height: 20, borderTop: t ? "none" : `3px solid ${cs.color}`, borderBottom: t ? `3px solid ${cs.color}` : "none", borderLeft: l ? "none" : `3px solid ${cs.color}`, borderRight: l ? `3px solid ${cs.color}` : "none" }} />
             ))}
             {/* Scan line */}
-            <div style={{ position: "absolute", left: 0, right: 0, height: 2, background: \`linear-gradient(90deg,transparent,\${cs.color},transparent)\`, boxShadow: \`0 0 12px \${cs.color}\`, animation: "scanLine 2s ease-in-out infinite", top: 0 }} />
+            <div style={{ position: "absolute", left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${cs.color},transparent)`, boxShadow: `0 0 12px ${cs.color}`, animation: "scanLine 2s ease-in-out infinite", top: 0 }} />
           </div>
           {/* Step indicator */}
           <div style={{ position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 8 }}>
             {[1, 2, 3].map(n => (
-              <div key={n} style={{ width: n < step ? 28 : n === step ? 28 : 8, height: 8, borderRadius: 99, background: n < step ? T.green : n === step ? cs.color : "rgba(255,255,255,0.2)", transition: "all 0.3s", boxShadow: n === step ? \`0 0 8px \${cs.color}\` : "none" }} />
+              <div key={n} style={{ width: n < step ? 28 : n === step ? 28 : 8, height: 8, borderRadius: 99, background: n < step ? T.green : n === step ? cs.color : "rgba(255,255,255,0.2)", transition: "all 0.3s", boxShadow: n === step ? `0 0 8px ${cs.color}` : "none" }} />
             ))}
           </div>
           {/* Instruction */}
           <div style={{ position: "absolute", top: 54, left: 20, right: 20, textAlign: "center" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 99, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(10px)", border: \`1px solid \${cs.color}40\` }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 99, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(10px)", border: `1px solid ${cs.color}40` }}>
               <span style={{ fontSize: 14 }}>{cs.icon}</span>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Step {step}: {cs.label}</span>
             </div>
@@ -362,12 +362,12 @@ function AnalysisFlow({ onClose }) {
         {/* Shutter UI */}
         <div style={{ padding: "16px 30px 40px", background: "#000", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button onClick={onClose} style={{ width: 48, height: 48, borderRadius: 99, background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", color: "#fff", fontSize: 18 }}>✕</button>
-          <button onClick={handleCapture} style={{ width: 76, height: 76, borderRadius: 99, background: "#fff", border: \`4px solid \${cs.color}\`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: \`0 0 30px \${cs.color}80\`, transition: "transform .15s", position: "relative" }}
+          <button onClick={handleCapture} style={{ width: 76, height: 76, borderRadius: 99, background: "#fff", border: `4px solid ${cs.color}`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 30px ${cs.color}80`, transition: "transform .15s", position: "relative" }}
             onMouseDown={e => e.currentTarget.style.transform = "scale(0.92)"}
             onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}>
-            <div style={{ width: 60, height: 60, borderRadius: 99, background: "#fff", border: \`3px solid #ccc\` }} />
+            <div style={{ width: 60, height: 60, borderRadius: 99, background: "#fff", border: `3px solid #ccc` }} />
           </button>
-          <div style={{ width: 48, height: 48, borderRadius: 13, background: T.card, border: \`1px solid \${T.border}\`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 13, background: T.card, border: `1px solid ${T.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
             {capturedViews.length > 0 ? CAPTURE_STEPS[capturedViews[capturedViews.length - 1]].icon : "📷"}
           </div>
         </div>
@@ -380,7 +380,7 @@ function AnalysisFlow({ onClose }) {
     <div style={{ position: "absolute", inset: 0, background: T.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 30, animation: "fadeIn 0.4s ease" }}>
       <div style={{ position: "relative", width: 160, height: 160, marginBottom: 32 }}>
         {[1, 2, 3].map(r => (
-          <div key={r} style={{ position: "absolute", inset: r * 16, borderRadius: "50%", border: \`1.5px solid rgba(34,197,94,\${0.5 - r * 0.12})\`, animation: \`pulse \${1.2 + r * 0.3}s ease-in-out infinite alternate\` }} />
+          <div key={r} style={{ position: "absolute", inset: r * 16, borderRadius: "50%", border: `1.5px solid rgba(34,197,94,${0.5 - r * 0.12})`, animation: `pulse ${1.2 + r * 0.3}s ease-in-out infinite alternate` }} />
         ))}
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg,rgba(34,197,94,0.25),rgba(34,197,94,0.05))", border: "2px solid rgba(34,197,94,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>🔬</div>
@@ -389,7 +389,7 @@ function AnalysisFlow({ onClose }) {
       <h2 style={{ fontSize: 22, fontWeight: 900, color: T.white, marginBottom: 8, fontFamily: "var(--font-display)" }}>Analyzing Crop</h2>
       <div style={{ height: 30, marginBottom: 24, overflow: "hidden" }}>
         {PROCESSING_STEPS.map((s, i) => (
-          <div key={i} style={{ height: 30, display: "flex", alignItems: "center", justifyContent: "center", transform: \`translateY(-\${processingStep * 30}px)\`, transition: "transform 0.4s ease", opacity: i === processingStep - 1 ? 1 : 0.3 }}>
+          <div key={i} style={{ height: 30, display: "flex", alignItems: "center", justifyContent: "center", transform: `translateY(-${processingStep * 30}px)`, transition: "transform 0.4s ease", opacity: i === processingStep - 1 ? 1 : 0.3 }}>
             <p style={{ fontSize: 13, color: T.green, fontWeight: 600 }}>⚡ {s}</p>
           </div>
         ))}
@@ -428,7 +428,7 @@ function AnalysisFlow({ onClose }) {
             <div style={{ fontSize: 11, color: T.gray1, marginBottom: 2 }}>AGMARK GRADE</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: T.yellow }}>🏅 GOLD</div>
           </div>
-          <div style={{ padding: "10px 24px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: \`1px solid \${T.border}\`, textAlign: "center" }}>
+          <div style={{ padding: "10px 24px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, textAlign: "center" }}>
             <div style={{ fontSize: 11, color: T.gray1, marginBottom: 2 }}>MARKET PRICE</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: T.green }}>₹6,450</div>
           </div>
@@ -436,24 +436,24 @@ function AnalysisFlow({ onClose }) {
       </div>
 
       {/* Voice Results */}
-      <div style={{ margin: "16px 20px", padding: "14px 16px", borderRadius: 16, background: T.card, border: \`1px solid \${T.border}\` }}>
+      <div style={{ margin: "16px 20px", padding: "14px 16px", borderRadius: 16, background: T.card, border: `1px solid ${T.border}` }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: T.white }}>🔊 Voice Results</span>
           <div style={{ display: "flex", gap: 6 }}>
             {["male", "female"].map(g => (
-              <button key={g} onClick={() => setVoiceGender(g)} style={{ padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: voiceGender === g ? T.green : T.card2, color: voiceGender === g ? "#000" : T.gray1, border: \`1px solid \${voiceGender === g ? T.green : T.border}\`, cursor: "pointer" }}>{g === "male" ? "👨" : "👩"} {g}</button>
+              <button key={g} onClick={() => setVoiceGender(g)} style={{ padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: voiceGender === g ? T.green : T.card2, color: voiceGender === g ? "#000" : T.gray1, border: `1px solid ${voiceGender === g ? T.green : T.border}`, cursor: "pointer" }}>{g === "male" ? "👨" : "👩"} {g}</button>
             ))}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={() => setVoicePlaying(!voicePlaying)} style={{ width: 46, height: 46, borderRadius: 14, background: voicePlaying ? T.green : "rgba(34,197,94,0.15)", border: \`1px solid \${voicePlaying ? T.green : "rgba(34,197,94,0.3)"}\`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, transition: "all .2s" }}>
+          <button onClick={() => setVoicePlaying(!voicePlaying)} style={{ width: 46, height: 46, borderRadius: 14, background: voicePlaying ? T.green : "rgba(34,197,94,0.15)", border: `1px solid ${voicePlaying ? T.green : "rgba(34,197,94,0.3)"}`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, transition: "all .2s" }}>
             {voicePlaying ? "⏸️" : "▶️"}
           </button>
           <div style={{ flex: 1 }}>
             {voicePlaying ? (
               <div style={{ display: "flex", gap: 3, height: 28, alignItems: "center" }}>
                 {Array.from({ length: 24 }).map((_, i) => (
-                  <div key={i} style={{ width: 3, borderRadius: 99, background: T.green, animation: \`waveBar \${0.4 + (i % 5) * 0.1}s ease-in-out infinite alternate\`, height: \`\${20 + Math.sin(i) * 16}px\`, opacity: 0.7 + (i % 3) * 0.1 }} />
+                  <div key={i} style={{ width: 3, borderRadius: 99, background: T.green, animation: `waveBar ${0.4 + (i % 5) * 0.1}s ease-in-out infinite alternate`, height: `${20 + Math.sin(i) * 16}px`, opacity: 0.7 + (i % 3) * 0.1 }} />
                 ))}
               </div>
             ) : (
@@ -471,7 +471,7 @@ function AnalysisFlow({ onClose }) {
         <div style={{ fontSize: 14, fontWeight: 800, color: T.white, marginBottom: 14 }}>Quality Metrics (10/10)</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {METRICS.map((m, i) => (
-            <div key={i} style={{ padding: "12px 14px", borderRadius: 14, background: T.card, border: \`1px solid \${T.border}\` }}>
+            <div key={i} style={{ padding: "12px 14px", borderRadius: 14, background: T.card, border: `1px solid ${T.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                 <span style={{ fontSize: 11, color: T.gray1, fontWeight: 600, letterSpacing: "0.02em" }}>{m.label}</span>
                 <span style={{ fontSize: 12, fontWeight: 800, color: m.color }}>{m.val}%</span>
@@ -483,7 +483,7 @@ function AnalysisFlow({ onClose }) {
       </div>
 
       {/* QR Certificate */}
-      <div style={{ margin: "0 20px 16px", padding: "20px", borderRadius: 18, background: T.card, border: \`1px solid rgba(34,197,94,0.25)\`, display: "flex", gap: 16, alignItems: "center" }}>
+      <div style={{ margin: "0 20px 16px", padding: "20px", borderRadius: 18, background: T.card, border: `1px solid rgba(34,197,94,0.25)`, display: "flex", gap: 16, alignItems: "center" }}>
         <div style={{ animation: showQR ? "popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards" : "none", opacity: showQR ? 1 : 0 }}>
           <QRCode size={88} />
         </div>
@@ -496,14 +496,14 @@ function AnalysisFlow({ onClose }) {
 
       {/* Action Buttons */}
       <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 10 }}>
-        <button style={{ padding: "14px", borderRadius: 16, background: "linear-gradient(135deg,#22c55e,#16a34a)", color: "#fff", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, boxShadow: \`0 8px 24px \${T.greenGlow}\`, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        <button style={{ padding: "14px", borderRadius: 16, background: "linear-gradient(135deg,#22c55e,#16a34a)", color: "#fff", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, boxShadow: `0 8px 24px ${T.greenGlow}`, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
           📥 Download PDF Certificate
         </button>
         <div style={{ display: "flex", gap: 10 }}>
           <button style={{ flex: 1, padding: "13px", borderRadius: 14, background: "rgba(250,204,21,0.12)", color: T.yellow, border: "1px solid rgba(250,204,21,0.3)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
             ⛓️ Mint NFT
           </button>
-          <button onClick={() => { setStep(0); setCapturedViews([]); setProcessingStep(0); }} style={{ flex: 1, padding: "13px", borderRadius: 14, background: T.card, color: T.gray1, border: \`1px solid \${T.border}\`, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+          <button onClick={() => { setStep(0); setCapturedViews([]); setProcessingStep(0); }} style={{ flex: 1, padding: "13px", borderRadius: 14, background: T.card, color: T.gray1, border: `1px solid ${T.border}`, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
             🔄 Re-upload
           </button>
         </div>
@@ -533,20 +533,20 @@ function Community() {
         <h1 style={{ fontSize: 22, fontWeight: 800, color: T.white, fontFamily: "var(--font-display)", marginBottom: 2 }}>AgriSocial</h1>
         <p style={{ fontSize: 12, color: T.gray1, marginBottom: 16 }}>Connect with farmers across India</p>
         {/* Search */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", borderRadius: 13, background: T.card, border: \`1px solid \${T.border}\`, marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", borderRadius: 13, background: T.card, border: `1px solid ${T.border}`, marginBottom: 14 }}>
           <span style={{ fontSize: 15, color: T.gray2 }}>🔍</span>
           <span style={{ fontSize: 13, color: T.gray2 }}>Search posts, crops, locations...</span>
         </div>
         {/* Filters */}
         <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6, marginBottom: 8 }} className="hide-scrollbar">
           {filters.map(f => (
-            <button key={f} onClick={() => setActiveFilter(f)} style={{ flexShrink: 0, padding: "7px 16px", borderRadius: 99, fontSize: 12, fontWeight: 700, background: activeFilter === f ? T.green : T.card, color: activeFilter === f ? "#000" : T.gray1, border: \`1px solid \${activeFilter === f ? T.green : T.border}\`, cursor: "pointer", transition: "all .2s" }}>{f}</button>
+            <button key={f} onClick={() => setActiveFilter(f)} style={{ flexShrink: 0, padding: "7px 16px", borderRadius: 99, fontSize: 12, fontWeight: 700, background: activeFilter === f ? T.green : T.card, color: activeFilter === f ? "#000" : T.gray1, border: `1px solid ${activeFilter === f ? T.green : T.border}`, cursor: "pointer", transition: "all .2s" }}>{f}</button>
           ))}
         </div>
       </div>
 
       {COMMUNITY_POSTS.map(post => (
-        <div key={post.id} style={{ margin: "0 0 4px", borderTop: \`1px solid \${T.border}\` }}>
+        <div key={post.id} style={{ margin: "0 0 4px", borderTop: `1px solid ${T.border}` }}>
           {/* Post header */}
           <div style={{ padding: "14px 20px 0", display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 40, height: 40, borderRadius: 13, background: "linear-gradient(135deg,rgba(34,197,94,0.2),rgba(34,197,94,0.05))", border: "1px solid rgba(34,197,94,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{post.avatar}</div>
@@ -557,33 +557,33 @@ function Community() {
               </div>
               <div style={{ fontSize: 11, color: T.gray2 }}>📍 {post.location} · {post.time}</div>
             </div>
-            <button style={{ padding: "5px 12px", borderRadius: 99, background: T.card, border: \`1px solid \${T.border}\`, color: T.gray1, fontSize: 11, cursor: "pointer" }}>•••</button>
+            <button style={{ padding: "5px 12px", borderRadius: 99, background: T.card, border: `1px solid ${T.border}`, color: T.gray1, fontSize: 11, cursor: "pointer" }}>•••</button>
           </div>
 
           {/* Post content */}
           <div style={{ padding: "10px 20px" }}>
             <p style={{ fontSize: 13, color: T.white, lineHeight: 1.6, marginBottom: 10 }}>
-              {translated[post.id] ? \`[Translated to English] \${post.content.slice(0, 80)}...\` : post.content}
+              {translated[post.id] ? `[Translated to English] ${post.content.slice(0, 80)}...` : post.content}
             </p>
             {/* Image placeholder */}
-            <div style={{ height: 180, borderRadius: 16, background: \`linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03))\`, border: \`1px solid rgba(34,197,94,0.15)\`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 60, marginBottom: 12 }}>{post.image}</div>
+            <div style={{ height: 180, borderRadius: 16, background: `linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03))`, border: `1px solid rgba(34,197,94,0.15)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 60, marginBottom: 12 }}>{post.image}</div>
           </div>
 
           {/* Actions */}
           <div style={{ padding: "0 16px 14px", display: "flex", alignItems: "center", gap: 4 }}>
-            <button onClick={() => setLiked(l => ({ ...l, [post.id]: !l[post.id] }))} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 99, background: liked[post.id] ? "rgba(248,113,113,0.12)" : T.card, border: \`1px solid \${liked[post.id] ? "rgba(248,113,113,0.3)" : T.border}\`, cursor: "pointer", transition: "all .2s" }}>
+            <button onClick={() => setLiked(l => ({ ...l, [post.id]: !l[post.id] }))} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 99, background: liked[post.id] ? "rgba(248,113,113,0.12)" : T.card, border: `1px solid ${liked[post.id] ? "rgba(248,113,113,0.3)" : T.border}`, cursor: "pointer", transition: "all .2s" }}>
               <span style={{ fontSize: 14 }}>{liked[post.id] ? "❤️" : "🤍"}</span>
               <span style={{ fontSize: 12, color: liked[post.id] ? T.red : T.gray1, fontWeight: 600 }}>{post.likes + (liked[post.id] ? 1 : 0)}</span>
             </button>
-            <button style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 99, background: T.card, border: \`1px solid \${T.border}\`, cursor: "pointer" }}>
+            <button style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 99, background: T.card, border: `1px solid ${T.border}`, cursor: "pointer" }}>
               <span style={{ fontSize: 14 }}>💬</span>
               <span style={{ fontSize: 12, color: T.gray1, fontWeight: 600 }}>{post.comments}</span>
             </button>
-            <button onClick={() => setTranslated(t => ({ ...t, [post.id]: !t[post.id] }))} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 99, background: translated[post.id] ? "rgba(96,165,250,0.12)" : T.card, border: \`1px solid \${translated[post.id] ? "rgba(96,165,250,0.3)" : T.border}\`, cursor: "pointer", transition: "all .2s" }}>
+            <button onClick={() => setTranslated(t => ({ ...t, [post.id]: !t[post.id] }))} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 99, background: translated[post.id] ? "rgba(96,165,250,0.12)" : T.card, border: `1px solid ${translated[post.id] ? "rgba(96,165,250,0.3)" : T.border}`, cursor: "pointer", transition: "all .2s" }}>
               <span style={{ fontSize: 14 }}>🌐</span>
               <span style={{ fontSize: 11, color: translated[post.id] ? T.blue : T.gray1, fontWeight: 600 }}>{translated[post.id] ? "Original" : "Translate"}</span>
             </button>
-            <button style={{ marginLeft: "auto", padding: "7px 12px", borderRadius: 99, background: T.card, border: \`1px solid \${T.border}\`, cursor: "pointer" }}>
+            <button style={{ marginLeft: "auto", padding: "7px 12px", borderRadius: 99, background: T.card, border: `1px solid ${T.border}`, cursor: "pointer" }}>
               <span style={{ fontSize: 14 }}>📤</span>
             </button>
           </div>
@@ -591,7 +591,7 @@ function Community() {
       ))}
 
       {/* Compose FAB */}
-      <div style={{ position: "fixed", bottom: 90, right: 20, width: 50, height: 50, borderRadius: 15, background: "linear-gradient(135deg,#22c55e,#16a34a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: \`0 8px 24px \${T.greenGlow}\`, cursor: "pointer", zIndex: 30 }}>✏️</div>
+      <div style={{ position: "fixed", bottom: 90, right: 20, width: 50, height: 50, borderRadius: 15, background: "linear-gradient(135deg,#22c55e,#16a34a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: `0 8px 24px ${T.greenGlow}`, cursor: "pointer", zIndex: 30 }}>✏️</div>
     </div>
   );
 }
@@ -648,7 +648,7 @@ function Support() {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {/* Header */}
-      <div style={{ padding: "20px 20px 14px", borderBottom: \`1px solid \${T.border}\` }}>
+      <div style={{ padding: "20px 20px 14px", borderBottom: `1px solid ${T.border}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 42, height: 42, borderRadius: 13, background: "linear-gradient(135deg,rgba(34,197,94,0.25),rgba(34,197,94,0.05))", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🤖</div>
           <div>
@@ -659,7 +659,7 @@ function Support() {
             </div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            <div style={{ padding: "5px 10px", borderRadius: 99, background: T.card, border: \`1px solid \${T.border}\`, fontSize: 11, color: T.gray1 }}>🌐 EN</div>
+            <div style={{ padding: "5px 10px", borderRadius: 99, background: T.card, border: `1px solid ${T.border}`, fontSize: 11, color: T.gray1 }}>🌐 EN</div>
           </div>
         </div>
       </div>
@@ -671,7 +671,7 @@ function Support() {
             {msg.from === "bot" && (
               <div style={{ width: 28, height: 28, borderRadius: 9, background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, marginRight: 8, flexShrink: 0, marginTop: 2 }}>🤖</div>
             )}
-            <div style={{ maxWidth: "72%", padding: "11px 14px", borderRadius: msg.from === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: msg.from === "user" ? "linear-gradient(135deg,#22c55e,#16a34a)" : T.card, border: msg.from === "bot" ? \`1px solid \${T.border}\` : "none", boxShadow: msg.from === "user" ? \`0 4px 16px \${T.greenGlow}\` : "none" }}>
+            <div style={{ maxWidth: "72%", padding: "11px 14px", borderRadius: msg.from === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: msg.from === "user" ? "linear-gradient(135deg,#22c55e,#16a34a)" : T.card, border: msg.from === "bot" ? `1px solid ${T.border}` : "none", boxShadow: msg.from === "user" ? `0 4px 16px ${T.greenGlow}` : "none" }}>
               <p style={{ fontSize: 13, color: msg.from === "user" ? "#fff" : T.white, lineHeight: 1.55 }}>{msg.text}</p>
             </div>
           </div>
@@ -681,9 +681,9 @@ function Support() {
         {typing && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <div style={{ width: 28, height: 28, borderRadius: 9, background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🤖</div>
-            <div style={{ padding: "12px 16px", borderRadius: "18px 18px 18px 4px", background: T.card, border: \`1px solid \${T.border}\`, display: "flex", gap: 5, alignItems: "center" }}>
+            <div style={{ padding: "12px 16px", borderRadius: "18px 18px 18px 4px", background: T.card, border: `1px solid ${T.border}`, display: "flex", gap: 5, alignItems: "center" }}>
               {[0, 1, 2].map(i => (
-                <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: T.green, animation: \`typingDot 1.2s ease-in-out \${i * 0.2}s infinite\` }} />
+                <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: T.green, animation: `typingDot 1.2s ease-in-out ${i * 0.2}s infinite` }} />
               ))}
             </div>
           </div>
@@ -700,7 +700,7 @@ function Support() {
               </div>
             </div>
             {[{ icon: "📞", label: "Aditya Singh (Founder)", value: "+91 9674951947" }, { icon: "📞", label: "Support Team", value: "+91 9748124930" }, { icon: "📧", label: "Email", value: "adityasinghvoid0009@gmail.com" }].map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < 2 ? \`1px solid rgba(255,255,255,0.05)\` : "none" }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: i < 2 ? `1px solid rgba(255,255,255,0.05)` : "none" }}>
                 <span style={{ fontSize: 15 }}>{c.icon}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 10, color: T.gray2 }}>{c.label}</div>
@@ -719,17 +719,17 @@ function Support() {
       {/* Quick actions */}
       <div style={{ padding: "10px 16px 6px", display: "flex", gap: 8, overflowX: "auto" }} className="hide-scrollbar">
         {QUICK_ACTIONS.map(a => (
-          <button key={a} onClick={() => { setInput(a); }} style={{ flexShrink: 0, padding: "7px 14px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: T.card, color: T.gray1, border: \`1px solid \${T.border}\`, cursor: "pointer", whiteSpace: "nowrap" }}>{a}</button>
+          <button key={a} onClick={() => { setInput(a); }} style={{ flexShrink: 0, padding: "7px 14px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: T.card, color: T.gray1, border: `1px solid ${T.border}`, cursor: "pointer", whiteSpace: "nowrap" }}>{a}</button>
         ))}
       </div>
 
       {/* Input */}
       <div style={{ padding: "8px 16px 32px", display: "flex", gap: 8, alignItems: "flex-end" }}>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "10px 14px", borderRadius: 16, background: T.card, border: \`1px solid \${T.border}\`, gap: 8 }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "10px 14px", borderRadius: 16, background: T.card, border: `1px solid ${T.border}`, gap: 8 }}>
           <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()} placeholder="Type in any language..." style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 13, color: T.white, fontFamily: "inherit" }} />
           <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18 }}>🎙️</button>
         </div>
-        <button onClick={handleSend} style={{ width: 46, height: 46, borderRadius: 14, background: input.trim() ? "linear-gradient(135deg,#22c55e,#16a34a)" : T.card2, border: \`1px solid \${input.trim() ? T.green : T.border}\`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, transition: "all .2s", flexShrink: 0 }}>
+        <button onClick={handleSend} style={{ width: 46, height: 46, borderRadius: 14, background: input.trim() ? "linear-gradient(135deg,#22c55e,#16a34a)" : T.card2, border: `1px solid ${input.trim() ? T.green : T.border}`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, transition: "all .2s", flexShrink: 0 }}>
           ➤
         </button>
       </div>
@@ -748,7 +748,7 @@ function Profile() {
     <div style={{ flex: 1, overflowY: "auto", paddingBottom: 100 }} className="hide-scrollbar">
       {/* Hero */}
       <div style={{ padding: "30px 20px 20px", background: "linear-gradient(180deg,rgba(34,197,94,0.1),transparent)", textAlign: "center" }}>
-        <div style={{ width: 80, height: 80, borderRadius: 24, background: "linear-gradient(135deg,rgba(34,197,94,0.3),rgba(34,197,94,0.08))", border: "2px solid rgba(34,197,94,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 12px", boxShadow: \`0 0 30px \${T.greenGlow}\` }}>👨🌾</div>
+        <div style={{ width: 80, height: 80, borderRadius: 24, background: "linear-gradient(135deg,rgba(34,197,94,0.3),rgba(34,197,94,0.08))", border: "2px solid rgba(34,197,94,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 12px", boxShadow: `0 0 30px ${T.greenGlow}` }}>👨🌾</div>
         <h2 style={{ fontSize: 20, fontWeight: 900, color: T.white, fontFamily: "var(--font-display)" }}>Ramesh Kumar</h2>
         <p style={{ fontSize: 12, color: T.gray1, marginTop: 2 }}>📍 Vidarbha, Maharashtra · Farmer since 1998</p>
         <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 10 }}>
@@ -760,7 +760,7 @@ function Profile() {
       {/* Stats */}
       <div style={{ margin: "0 20px 16px", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
         {[["47", "Total Scans", T.green], ["12", "Certificates", T.yellow], ["4.8★", "Seller Rating", T.blue]].map(([v, l, c]) => (
-          <div key={l} style={{ padding: "12px 8px", borderRadius: 14, background: T.card, border: \`1px solid \${T.border}\`, textAlign: "center" }}>
+          <div key={l} style={{ padding: "12px 8px", borderRadius: 14, background: T.card, border: `1px solid ${T.border}`, textAlign: "center" }}>
             <div style={{ fontSize: 18, fontWeight: 900, color: c }}>{v}</div>
             <div style={{ fontSize: 10, color: T.gray2, marginTop: 2 }}>{l}</div>
           </div>
@@ -771,7 +771,7 @@ function Profile() {
       {[
         {
           title: "Language & Voice", items: [
-            { icon: "🌐", label: "App Language", action: <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>{LANGS.map(l => <button key={l} onClick={() => setLang(l)} style={{ padding: "3px 9px", borderRadius: 99, fontSize: 10, fontWeight: 600, background: lang === l ? T.green : T.card2, color: lang === l ? "#000" : T.gray1, border: \`1px solid \${lang === l ? T.green : T.border}\`, cursor: "pointer" }}>{l}</button>)}</div> },
+            { icon: "🌐", label: "App Language", action: <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>{LANGS.map(l => <button key={l} onClick={() => setLang(l)} style={{ padding: "3px 9px", borderRadius: 99, fontSize: 10, fontWeight: 600, background: lang === l ? T.green : T.card2, color: lang === l ? "#000" : T.gray1, border: `1px solid ${lang === l ? T.green : T.border}`, cursor: "pointer" }}>{l}</button>)}</div> },
             { icon: "🔊", label: "Voice Assistant", action: <Pill color={T.green}>ON</Pill> },
             { icon: "🎙️", label: "Voice Gender", action: <span style={{ color: T.gray1, fontSize: 12 }}>Male</span> },
           ]
@@ -793,9 +793,9 @@ function Profile() {
       ].map(section => (
         <div key={section.title} style={{ margin: "0 20px 14px" }}>
           <div style={{ fontSize: 11, color: T.gray2, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>{section.title}</div>
-          <div style={{ borderRadius: 16, background: T.card, border: \`1px solid \${T.border}\`, overflow: "hidden" }}>
+          <div style={{ borderRadius: 16, background: T.card, border: `1px solid ${T.border}`, overflow: "hidden" }}>
             {section.items.map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i < section.items.length - 1 ? \`1px solid \${T.border}\` : "none" }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i < section.items.length - 1 ? `1px solid ${T.border}` : "none" }}>
                 <span style={{ fontSize: 17 }}>{item.icon}</span>
                 <span style={{ flex: 1, fontSize: 13, color: T.white, fontWeight: 500 }}>{item.label}</span>
                 {item.action}
@@ -825,11 +825,11 @@ function BottomNav({ active, onChange, onCamera }) {
   ];
 
   return (
-    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 82, background: "rgba(14,14,14,0.95)", backdropFilter: "blur(20px)", borderTop: \`1px solid \${T.border}\`, display: "flex", alignItems: "flex-start", paddingTop: 8, zIndex: 40 }}>
+    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 82, background: "rgba(14,14,14,0.95)", backdropFilter: "blur(20px)", borderTop: `1px solid ${T.border}`, display: "flex", alignItems: "flex-start", paddingTop: 8, zIndex: 40 }}>
       {tabs.map((tab, i) => {
         if (tab.id === "camera") return (
           <div key="camera" style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "flex-start", marginTop: -22 }}>
-            <button onClick={onCamera} style={{ width: 62, height: 62, borderRadius: 20, background: "linear-gradient(135deg,#22c55e,#16a34a)", border: "4px solid #0a0a0a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: \`0 0 30px \${T.greenGlow}, 0 8px 24px rgba(0,0,0,0.5)\`, transition: "transform .15s, box-shadow .15s" }}
+            <button onClick={onCamera} style={{ width: 62, height: 62, borderRadius: 20, background: "linear-gradient(135deg,#22c55e,#16a34a)", border: "4px solid #0a0a0a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, boxShadow: `0 0 30px ${T.greenGlow}, 0 8px 24px rgba(0,0,0,0.5)`, transition: "transform .15s, box-shadow .15s" }}
               onMouseDown={e => e.currentTarget.style.transform = "scale(0.9)"}
               onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}>
               📷
@@ -841,7 +841,7 @@ function BottomNav({ active, onChange, onCamera }) {
           <button key={tab.id} onClick={() => onChange(tab.id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", paddingTop: 2 }}>
             <span style={{ fontSize: 22, filter: isActive ? "none" : "grayscale(0.6)", transition: "all .2s" }}>{tab.icon}</span>
             <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, color: isActive ? T.green : T.gray2, transition: "color .2s" }}>{tab.label}</span>
-            {isActive && <div style={{ width: 18, height: 3, borderRadius: 99, background: T.green, boxShadow: \`0 0 6px \${T.green}\` }} />}
+            {isActive && <div style={{ width: 18, height: 3, borderRadius: 99, background: T.green, boxShadow: `0 0 6px ${T.green}` }} />}
           </button>
         );
       })}
@@ -949,7 +949,7 @@ export default function AgriVerifyApp() {
 /* ═══════════════════════════════════════════════════════
    GLOBAL CSS
 ═══════════════════════════════════════════════════════ */
-const CSS = \`
+const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
   :root {
     --font-display: 'Sora', sans-serif;
@@ -979,4 +979,4 @@ const CSS = \`
     .desktop-info { display: none !important; }
     div[style*="padding: 20px"] > div[style*="gap: 40px"] { justify-content: center; }
   }
-\`;
+`;
