@@ -5,7 +5,6 @@ import QRCode from 'react-qr-code';
 import { jsPDF } from 'jspdf';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
-import { storage, ref, uploadString, getDownloadURL } from '../firebase';
 
 export function CameraFlow({ onClose }) {
   const { t, speakSlowly } = useLang();
@@ -66,25 +65,31 @@ export function CameraFlow({ onClose }) {
 
   const processAndUpload = async (capturedPhotos) => {
     try {
-      // Start processing UI immediately
       setProcessingProgress(10);
       
-      const uid = user?.uid || 'guest';
-      const timestamp = Date.now();
       const uploadedUrls = [];
+      const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+      const cloudName = 'dc8suuh6h';
 
       for (let i = 0; i < capturedPhotos.length; i++) {
-        // Mock progression for UI while uploading
         setProcessingProgress(20 + (i * 20));
         
         try {
-          // Attempt Firebase Storage Upload
-          const storageRef = ref(storage, `scans/${uid}/${timestamp}_${ANGLES[i].id}.jpg`);
-          await uploadString(storageRef, capturedPhotos[i], 'data_url');
-          const downloadUrl = await getDownloadURL(storageRef);
-          uploadedUrls.push(downloadUrl);
+          const formData = new FormData();
+          formData.append('file', capturedPhotos[i]);
+          formData.append('upload_preset', preset);
+
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!res.ok) throw new Error("Cloudinary upload failed");
+          
+          const data = await res.json();
+          uploadedUrls.push(data.secure_url);
         } catch (uploadError) {
-          console.warn("Storage upload failed, falling back to local base64.", uploadError);
+          console.warn("Cloudinary upload failed, falling back to local base64.", uploadError);
           uploadedUrls.push(capturedPhotos[i]); // Fallback
         }
       }

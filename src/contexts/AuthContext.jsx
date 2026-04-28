@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy } from '../firebase';
+import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -7,47 +7,50 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Real-time Database States
   const [posts, setPosts] = useState([]);
   const [comments, setComments] = useState({});
   const [following, setFollowing] = useState([]);
   const [followersCount, setFollowersCount] = useState(0);
-  const [socialGraph, setSocialGraph] = useState({}); // Stores searched users
-  
-  // Scans (Kept in LocalStorage for now to simulate local hardware camera ledger)
+  const [socialGraph, setSocialGraph] = useState({});
   const [scans, setScans] = useState([]);
 
   useEffect(() => {
-    // 1. Initialize Local Session
-    const savedUser = localStorage.getItem('agriverify_user');
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch user document from Firestore
+        const userDoc = await getDoc(doc(usersRef, firebaseUser.uid));
+        if (userDoc.exists()) {
+          setUser(userDoc.data());
+          setupRealtimeListeners(firebaseUser.uid);
+        } else {
+          // User exists in Auth but not in Firestore (needs to complete profile)
+          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
+          setLoading(false);
+        }
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
     const savedScans = localStorage.getItem('agriverify_scans');
     if (savedScans) setScans(JSON.parse(savedScans));
-    
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      setupRealtimeListeners(parsedUser.uid);
-    } else {
-      setLoading(false);
-    }
+
+    return () => unsubscribe();
   }, []);
 
   const setupRealtimeListeners = (uid) => {
     try {
-      // Listen to Posts
       const qPosts = query(postsRef, orderBy('createdAt', 'desc'));
       const unsubPosts = onSnapshot(qPosts, (snapshot) => {
-        const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPosts(postsData);
+        setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
-      // Listen to Current User's Following List
       const qFollowing = query(followersRef, where('followerId', '==', uid));
       const unsubFollowing = onSnapshot(qFollowing, (snapshot) => {
         setFollowing(snapshot.docs.map(doc => doc.data().targetId));
       });
 
-      // Listen to Current User's Followers Count
       const qFollowers = query(followersRef, where('targetId', '==', uid));
       const unsubFollowers = onSnapshot(qFollowers, (snapshot) => {
         setFollowersCount(snapshot.docs.length);
@@ -56,44 +59,54 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return () => { unsubPosts(); unsubFollowing(); unsubFollowers(); };
     } catch (e) {
-      console.warn("Firebase config missing or invalid. Operating in offline mode.", e);
+      console.warn("Firebase config missing. Operating in offline mode.", e);
       setLoading(false);
     }
   };
 
-  const login = async (userData) => {
-    const uid = userData.phone.replace(/D/g,'') || `user_${Date.now()}`; // Generate simple UID from phone
+  const loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Google Auth Failed", error);
+      // Fallback for demo without valid config
+      completeProfile({ name: 'Guest User', phone: '0000000000', city: 'Demo City' }, 'guest_' + Date.now());
+    }
+  };
+
+  const completeProfile = async (formData, fallbackUid = null) => {
+    const uid = fallbackUid || user?.uid;
     const finalUser = {
-      ...userData,
+      ...formData,
       uid,
-      avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=1e293b&color=fff`,
+      email: user?.email || '',
+      avatar: formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
+      nameLowerCase: formData.name.toLowerCase(), // For case-insensitive search
       isPrivate: false,
     };
     
     try {
-      // Sync user profile to Firestore
       await setDoc(doc(usersRef, uid), finalUser, { merge: true });
     } catch(e) {}
     
     setUser(finalUser);
-    localStorage.setItem('agriverify_user', JSON.stringify(finalUser));
     setupRealtimeListeners(uid);
   };
 
   const logout = () => {
+    signOut(auth);
     setUser(null);
     setPosts([]);
     setFollowing([]);
-    localStorage.removeItem('agriverify_user');
   };
 
   const updateProfile = async (updates) => {
     const updated = { ...user, ...updates };
+    if (updates.name) updated.nameLowerCase = updates.name.toLowerCase();
     try {
       await setDoc(doc(usersRef, user.uid), updated, { merge: true });
     } catch(e) {}
     setUser(updated);
-    localStorage.setItem('agriverify_user', JSON.stringify(updated));
   };
 
   const togglePrivacy = async () => {
@@ -101,10 +114,9 @@ export function AuthProvider({ children }) {
     await updateProfile({ isPrivate: newStatus });
   };
 
-  // --- Real-time Search & Follow Logic ---
   const searchUsers = (searchQuery) => {
-    // Basic prefix search implementation (Requires lowercase name field in production)
-    const q = query(usersRef, where('name', '>=', searchQuery), where('name', '<=', searchQuery + 'uf8ff'));
+    const searchLower = searchQuery.toLowerCase();
+    const q = query(usersRef, where('nameLowerCase', '>=', searchLower), where('nameLowerCase', '<=', searchLower + 'uf8ff'));
     onSnapshot(q, (snapshot) => {
       const results = {};
       snapshot.docs.forEach(doc => {
@@ -120,22 +132,17 @@ export function AuthProvider({ children }) {
       const followId = `${user.uid}_${targetId}`;
       const isFollowing = following.includes(targetId);
       if (isFollowing) {
-        // Unfollow (We simulate delete by just not doing it natively to save DB rules for demo, but normally deleteDoc)
-        // For simplicity in this demo, we will re-sync lists, normally: deleteDoc(doc(followersRef, followId))
+        // Mock unfollow for demo
       } else {
-        // Follow
         await setDoc(doc(followersRef, followId), {
           followerId: user.uid,
           targetId: targetId,
           createdAt: Date.now()
         });
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) {}
   };
 
-  // --- Post & Comment Logic ---
   const addPost = async (postData) => {
     if (!user) return;
     try {
@@ -173,10 +180,6 @@ export function AuthProvider({ children }) {
     });
   };
 
-  const toggleLike = (id) => {
-    // In production: updateDoc(doc(postsRef, id), { likes: increment(1) })
-  };
-
   const addScan = (scanData) => {
     const newScans = [scanData, ...scans];
     setScans(newScans);
@@ -185,8 +188,8 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ 
-      user, login, logout, updateProfile, scans, addScan, 
-      posts, addPost, toggleLike, loading,
+      user, loginWithGoogle, completeProfile, logout, updateProfile, scans, addScan, 
+      posts, addPost, loading,
       togglePrivacy, following, toggleFollow, socialGraph, searchUsers, followersCount,
       comments, addComment, fetchComments
     }}>

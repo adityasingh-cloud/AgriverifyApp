@@ -12,12 +12,32 @@ export function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', phone: '', city: '', state: '' });
 
-  const handleAvatarUpload = (e) => {
+  const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Optimistic UI update
       const reader = new FileReader();
       reader.onloadend = () => updateProfile({ avatar: reader.result });
       reader.readAsDataURL(file);
+
+      // Cloudinary Upload
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset');
+        
+        const res = await fetch('https://api.cloudinary.com/v1_1/dc8suuh6h/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          updateProfile({ avatar: data.secure_url });
+        }
+      } catch (err) {
+        console.warn("Cloudinary avatar upload failed.", err);
+      }
     }
   };
 

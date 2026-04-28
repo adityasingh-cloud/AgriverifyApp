@@ -1,26 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import { Phone, Mail, ArrowRight } from 'lucide-react';
 
 export function Auth() {
-  const { login } = useAuth();
+  const { loginWithGoogle, completeProfile, user } = useAuth();
   const { t } = useLang();
+  
+  // If user exists and isNew is true, skip to step 2
   const [step, setStep] = useState(1); 
+  
+  useEffect(() => {
+    if (user?.isNew) {
+      setStep(2);
+    }
+  }, [user]);
   
   const [formData, setFormData] = useState({
     name: '', dob: '', city: '', state: '', country: 'India', phone: '', gender: 'Male'
   });
 
-  const handleLogin = (method) => {
-    if (method === 'phone') setFormData(prev => ({ ...prev, phone: '+91 ' }));
-    setStep(2);
-  };
-
   const handleComplete = (e) => {
     e.preventDefault();
-    login(formData);
+    completeProfile(formData);
   };
 
   return (
@@ -38,12 +41,12 @@ export function Auth() {
             <h1 className="text-3xl font-display font-black text-white mb-2">AgriVerify AI</h1>
             <p className="text-gray-400 text-sm mb-10">Sign in to access your agricultural insights</p>
 
-            <button onClick={() => handleLogin('phone')} className="w-full flex items-center justify-center gap-3 bg-agri-card hover:bg-agri-card2 border border-agri-border py-4 rounded-2xl mb-4 transition-colors">
+            <button onClick={() => { setStep(2); setFormData(p => ({...p, phone: '+91 '})) }} className="w-full flex items-center justify-center gap-3 bg-agri-card hover:bg-agri-card2 border border-agri-border py-4 rounded-2xl mb-4 transition-colors">
               <Phone size={20} className="text-agri-green" />
               <span className="font-semibold text-white">{t('login_phone')}</span>
             </button>
 
-            <button onClick={() => handleLogin('google')} className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 py-4 rounded-2xl transition-colors">
+            <button onClick={loginWithGoogle} className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 py-4 rounded-2xl transition-colors">
               <Mail size={20} className="text-black" />
               <span className="font-semibold text-black">{t('login_google')}</span>
             </button>

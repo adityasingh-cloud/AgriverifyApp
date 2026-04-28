@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy } from "firebase/firestore";
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSy_MOCK_API_KEY_PLEASE_REPLACE",
@@ -13,7 +13,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 
 // Helper reference functions for easy access in Context
 export const usersRef = collection(db, "users");
@@ -21,4 +22,4 @@ export const postsRef = collection(db, "posts");
 export const commentsRef = collection(db, "comments");
 export const followersRef = collection(db, "followers");
 
-export { doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy, ref, uploadString, getDownloadURL };
+export { doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy, signInWithPopup, signOut, onAuthStateChanged };
