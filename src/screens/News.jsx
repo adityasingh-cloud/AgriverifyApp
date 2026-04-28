@@ -89,7 +89,7 @@ export function News() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col h-full bg-agri-bg">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col bg-agri-bg">
       <div className="p-6 pb-2 border-b border-agri-border sticky top-0 bg-agri-bg/90 backdrop-blur-md z-10">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-display font-black text-white">{t('news_hub')}</h1>
@@ -126,7 +126,7 @@ export function News() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4 pb-12 overflow-y-auto">
+      <div className="p-4 space-y-4 pb-12">
         {loading ? (
            <div className="flex justify-center py-10">
               <div className="w-8 h-8 border-4 border-agri-green border-t-transparent rounded-full animate-spin"></div>

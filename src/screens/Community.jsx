@@ -55,7 +55,7 @@ export function Community() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col h-full bg-agri-bg relative">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col bg-agri-bg relative">
       <div className="p-6 pb-2 border-b border-agri-border sticky top-0 bg-agri-bg/90 backdrop-blur-md z-10">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-display font-black text-white">{t('community')}</h1>
@@ -134,7 +134,7 @@ export function Community() {
         )}
       </div>
 
-      <div className="p-4 space-y-4 pb-12 overflow-y-auto">
+      <div className="p-4 space-y-4 pb-12">
         {activeTab === 'feed' ? (
           posts.length > 0 ? posts.map(post => (
             <div key={post.id} className="bg-agri-card border border-agri-border rounded-2xl p-5">
