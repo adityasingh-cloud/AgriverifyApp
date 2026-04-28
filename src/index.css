@@ -5,15 +5,19 @@
 @tailwind utilities;
 
 :root {
-  --agri-green: #22c55e;
-  --agri-bg: #f8faf7;
-  --agri-card: #ffffff;
+  --agri-emerald: #1E5128;
+  --agri-teal: #1E6F6B;
+  --agri-coral: #FF6F61;
+  --agri-clay: #C27E6A;
+  --agri-butter: #F4E99B;
+  --agri-bg: #FFFFFF;
+  --agri-text: #191919;
 }
 
 @layer base {
   html, body, #root {
     background-color: var(--agri-bg);
-    color: #1a1a1a;
+    color: var(--agri-text);
     font-family: 'DM Sans', sans-serif;
     margin: 0;
     padding: 0;
@@ -24,18 +28,37 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Theme Transformation Overrides */
-  .text-white { @apply text-gray-900; }
-  .bg-agri-bg { @apply bg-[#f8faf7]; }
-  .bg-agri-card { @apply bg-white shadow-sm border border-black/5; }
-  .border-agri-border { @apply border-black/5; }
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Sora', sans-serif;
+    color: var(--agri-emerald);
+  }
+
+  button {
+    @apply transition-all duration-200 active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-agri-emerald text-white font-bold rounded-[12px];
+    box-shadow: 0 4px 14px 0 rgba(30, 81, 40, 0.2);
+  }
+
+  /* Utility Overrides for the new theme */
+  .text-agri-green { color: var(--agri-emerald) !important; }
+  .bg-agri-green { background-color: var(--agri-emerald) !important; }
+  .text-agri-yellow { color: var(--agri-clay) !important; }
+  .bg-agri-yellow { background-color: var(--agri-butter) !important; }
   
-  /* Reset specific elements that should remain white */
-  .bg-agri-green .text-white, 
-  .bg-agri-green .text-gray-900,
+  .text-white { @apply text-[#191919]; }
+  .bg-white { @apply bg-white; }
+  
+  /* Buttons and specific white-text elements */
+  .bg-agri-emerald .text-white,
+  .bg-agri-emerald .text-gray-900,
+  .btn-primary .text-white,
+  .bg-agri-emerald text-white,
   button.bg-agri-green,
-  .text-black { 
-    color: #000000 !important; 
+  .bg-agri-green text-white {
+    color: #FFFFFF !important;
   }
 }
 

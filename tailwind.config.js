@@ -8,14 +8,14 @@ export default {
     extend: {
       colors: {
         agri: {
-          green: "#22c55e",
-          "green-dim": "#16a34a",
-          "green-glow": "rgba(34,197,94,0.25)",
-          yellow: "#facc15",
-          bg: "#f8faf7",
-          card: "#ffffff",
-          card2: "#f3f6f2",
-          border: "rgba(0,0,0,0.05)"
+          emerald: "#1E5128",
+          teal: "#1E6F6B",
+          coral: "#FF6F61",
+          clay: "#C27E6A",
+          butter: "#F4E99B",
+          bg: "#FFFFFF",
+          text: "#191919",
+          border: "rgba(0,0,0,0.06)"
         }
       },
       fontFamily: {

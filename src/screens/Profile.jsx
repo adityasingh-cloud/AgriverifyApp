@@ -56,12 +56,12 @@ export function Profile({ setCurrentTab }) {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 relative">
-      <h1 className="text-2xl font-display font-black text-white mb-6">{t('profile_settings')}</h1>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 relative bg-white min-h-full">
+      <h1 className="text-2xl font-display font-black text-agri-emerald mb-6">{t('profile_settings')}</h1>
       
-      <div className="bg-agri-card border border-agri-border rounded-2xl mb-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-agri-green to-agri-green-dim" />
-        <div className="p-4 flex flex-col gap-4">
+      <div className="bg-white border border-gray-100 rounded-[24px] mb-8 relative overflow-hidden shadow-xl shadow-gray-200/20">
+        <div className="absolute top-0 left-0 w-full h-1 bg-agri-emerald" />
+        <div className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-agri-green/40">
@@ -79,12 +79,12 @@ export function Profile({ setCurrentTab }) {
               <input type="file" accept="image/*" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" />
             </div>
             <div>
-              <div className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="text-lg font-black text-agri-emerald flex items-center gap-2">
                 {user?.name}
               </div>
-              <div className="flex items-center gap-1.5 bg-agri-green/10 border border-agri-green/30 px-2 py-0.5 rounded-md inline-flex">
-                <Award className="text-agri-green" size={12} />
-                <span className="text-[10px] text-agri-green font-bold uppercase tracking-wider">{t('certified_partner')}</span>
+              <div className="flex items-center gap-1.5 bg-agri-butter px-2 py-0.5 rounded-[8px] inline-flex">
+                <Award className="text-agri-emerald" size={12} />
+                <span className="text-[10px] text-agri-emerald font-black uppercase tracking-widest">{t('certified_partner')}</span>
               </div>
             </div>
           </div>
@@ -105,17 +105,17 @@ export function Profile({ setCurrentTab }) {
         {/* Language Settings */}
         <div>
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-1">{t('app_language')}</div>
-          <div className="bg-agri-card border border-agri-border rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-agri-border flex flex-col gap-3">
-              <div className="flex items-center gap-3 text-sm text-white font-semibold">
-                <Globe className="text-blue-400" size={18} /> {t('app_language')}
+          <div className="bg-white border border-gray-100 rounded-[24px] overflow-hidden shadow-sm">
+            <div className="p-4 border-b border-gray-50 flex flex-col gap-3">
+              <div className="flex items-center gap-3 text-xs text-agri-emerald font-black uppercase tracking-widest">
+                <Globe className="text-agri-teal" size={18} /> {t('app_language')}
               </div>
               <div className="grid grid-cols-3 gap-2 mt-2">
                 {availableLangs.map(l => (
                   <button 
                     key={l}
                     onClick={() => setLang(l)}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-colors uppercase ${lang === l ? 'bg-agri-green text-black' : 'bg-agri-card2 text-gray-400 border border-white/5'}`}
+                    className={`px-2 py-2 rounded-[12px] text-xs font-black transition-colors uppercase ${lang === l ? 'bg-agri-emerald text-white shadow-lg shadow-agri-emerald/20' : 'bg-gray-50 text-agri-clay border border-gray-100'}`}
                   >
                     {l}
                   </button>
@@ -123,15 +123,15 @@ export function Profile({ setCurrentTab }) {
               </div>
             </div>
             <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm text-white font-semibold">
-                <Volume2 className="text-agri-yellow" size={18} /> {t('ai_voice')}
+              <div className="flex items-center gap-3 text-xs text-agri-emerald font-black uppercase tracking-widest">
+                <Volume2 className="text-agri-clay" size={18} /> {t('ai_voice')}
               </div>
-              <div className="flex bg-agri-bg rounded-lg p-1 border border-agri-border">
+              <div className="flex bg-gray-50 rounded-[12px] p-1">
                 {['Male', 'Female'].map(g => (
                   <button 
                     key={g}
                     onClick={() => setVoiceGender(g)}
-                    className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${voiceGender === g ? 'bg-agri-card text-white shadow-md' : 'text-gray-500 hover:text-gray-300'}`}
+                    className={`px-4 py-1.5 rounded-[10px] text-[10px] font-black transition-all ${voiceGender === g ? 'bg-white text-agri-emerald shadow-sm' : 'text-agri-clay/40'}`}
                   >
                     {g}
                   </button>
@@ -159,21 +159,21 @@ export function Profile({ setCurrentTab }) {
               </button>
             </div>
 
-            <button onClick={startEditing} className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors">
-              <UserIcon className="text-purple-400" size={18} /> {t('edit_profile')}
+            <button onClick={startEditing} className="w-full p-4 border-b border-gray-50 flex items-center gap-3 text-xs text-agri-emerald font-black uppercase tracking-widest hover:bg-gray-50 transition-colors">
+              <UserIcon className="text-agri-teal" size={18} /> {t('edit_profile')}
             </button>
-            <button className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors">
-              <Shield className="text-green-400" size={18} /> {t('data_privacy')}
+            <button className="w-full p-4 border-b border-gray-50 flex items-center gap-3 text-xs text-agri-emerald font-black uppercase tracking-widest hover:bg-gray-50 transition-colors">
+              <Shield className="text-agri-emerald" size={18} /> {t('data_privacy')}
             </button>
             <button 
               onClick={() => setCurrentTab('support')}
-              className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors"
+              className="w-full p-4 border-b border-gray-50 flex items-center gap-3 text-xs text-agri-emerald font-black uppercase tracking-widest hover:bg-gray-50 transition-colors"
             >
               <span className="text-xl">🤖</span> {t('support') || 'Support'}
             </button>
             <button 
               onClick={logout}
-              className="w-full p-4 flex items-center gap-3 text-sm text-red-400 font-bold hover:bg-red-500/10 transition-colors"
+              className="w-full p-4 flex items-center gap-3 text-xs text-agri-coral font-black uppercase tracking-widest hover:bg-red-50 transition-colors"
             >
               <LogOut size={18} /> {t('secure_logout')}
             </button>
@@ -208,10 +208,10 @@ export function Profile({ setCurrentTab }) {
                 </div>
                 
                 <div className="flex gap-3 pt-4">
-                  <button onClick={() => setIsEditing(false)} className="flex-1 bg-agri-card border border-agri-border py-3 rounded-xl font-bold text-gray-300">
+                  <button onClick={() => setIsEditing(false)} className="flex-1 bg-gray-100 py-3 rounded-[12px] font-black text-xs text-agri-clay uppercase tracking-widest">
                     {t('cancel') || 'Cancel'}
                   </button>
-                  <button onClick={saveProfile} className="flex-1 bg-agri-green text-black py-3 rounded-xl font-bold flex justify-center items-center gap-2">
+                  <button onClick={saveProfile} className="flex-1 bg-agri-emerald text-white py-3 rounded-[12px] font-black text-xs uppercase tracking-widest flex justify-center items-center gap-2 shadow-lg shadow-agri-emerald/20">
                     <Check size={16} /> {t('save_changes') || 'Save'}
                   </button>
                 </div>
