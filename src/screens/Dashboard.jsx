@@ -40,135 +40,125 @@ export function Dashboard() {
   const BentoCard = ({ title, icon: Icon, children, tooltipKey, className = "" }) => (
     <motion.div 
       whileHover={{ y: -5 }}
-      className={`relative bg-white border border-gray-100 p-5 rounded-[24px] shadow-sm flex flex-col ${className}`}
+      className={`relative bg-white border-2 border-black/5 p-5 rounded-[24px] shadow-xl shadow-gray-200/20 flex flex-col ${className}`}
     >
-      <div className="flex justify-between items-start mb-3">
-        <div className="p-2.5 bg-agri-emerald/5 rounded-2xl">
-          <Icon size={20} className="text-agri-emerald" />
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-3 bg-black rounded-[14px] shadow-lg shadow-black/10">
+          <Icon size={20} className="text-white" />
         </div>
-        <button onClick={() => setActiveTooltip(tooltipKey)} className="text-agri-clay/40 hover:text-agri-emerald transition-colors">
-          <HelpCircle size={18} />
+        <button onClick={() => setActiveTooltip(tooltipKey)} className="text-black opacity-30 hover:opacity-100 transition-opacity">
+          <HelpCircle size={20} />
         </button>
       </div>
-      <h3 className="text-[10px] font-black text-agri-clay uppercase tracking-widest mb-2">{title}</h3>
+      <h3 className="text-[10px] font-black text-black uppercase tracking-[0.1em] mb-2">{title}</h3>
       <div className="flex-1">{children}</div>
     </motion.div>
   );
 
   return (
-    <div className="min-h-full bg-white p-5 pt-4 pb-24 font-body">
-      {/* Alert Banner - Nature Tech Coral */}
+    <div className="min-h-full bg-agri-bg p-5 pt-4 pb-24 font-body">
+      {/* Alert Banner - Maximum Contrast */}
       <motion.div 
         initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-        className="mb-6 bg-agri-coral/5 border border-agri-coral/20 p-4 rounded-[12px] flex items-center gap-3"
+        className="mb-8 bg-black p-4 rounded-[16px] flex items-center gap-4 shadow-2xl shadow-black/20"
       >
-        <div className="w-10 h-10 bg-agri-coral/10 rounded-full flex items-center justify-center shrink-0">
-          <AlertCircle className="text-agri-coral" size={20} />
+        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shrink-0">
+          <AlertCircle className="text-black" size={24} />
         </div>
         <div className="flex-1">
-          <p className="text-[9px] font-black text-agri-coral uppercase tracking-tighter">District Alert</p>
-          <p className="text-xs font-bold text-agri-emerald">High Fungus Risk detected in Hooghly</p>
+          <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">District Alert</p>
+          <p className="text-sm font-black text-white">High Fungus Risk in Hooghly</p>
         </div>
-        <ArrowUpRight size={16} className="text-agri-coral/40" />
+        <ArrowUpRight size={20} className="text-white" />
       </motion.div>
 
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <p className="text-[10px] text-agri-clay font-black uppercase tracking-widest mb-1">{t(greetingKey)} {greetingEmoji}</p>
-          <h1 className="text-2xl font-display font-black text-agri-emerald">{user?.name || 'Farmer'}</h1>
+          <p className="text-[10px] text-black font-black uppercase tracking-[0.15em] mb-1 opacity-40">{t(greetingKey)} {greetingEmoji}</p>
+          <h1 className="text-3xl font-display font-black text-black tracking-tight">{user?.name || 'Farmer'}</h1>
         </div>
-        <div className="w-12 h-12 rounded-2xl bg-agri-emerald flex items-center justify-center text-2xl shadow-lg shadow-agri-emerald/20">
+        <div className="w-14 h-14 rounded-[18px] bg-black flex items-center justify-center text-3xl shadow-xl shadow-black/20 border-2 border-white/20">
           {user?.gender === 'Female' ? '👩🏽‍🌾' : '👨🏽‍🌾'}
         </div>
       </div>
 
-      {/* Stats Quick View - Minimal Scientific */}
-      <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-xl shadow-gray-200/20 mb-8">
-        <h2 className="text-[10px] font-black text-agri-clay uppercase tracking-widest mb-4">{t('verify_batch')}</h2>
+      {/* Stats View - High Visibility */}
+      <div className="bg-white border-2 border-black/5 rounded-[28px] p-7 shadow-2xl shadow-gray-200/30 mb-8">
+        <h2 className="text-[11px] font-black text-black uppercase tracking-widest mb-5 opacity-40">{t('verify_batch')}</h2>
         
-        <form onSubmit={handleVerify} className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-agri-clay/40" size={20} />
+        <form onSubmit={handleVerify} className="relative mb-8">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-black" size={22} />
           <input 
             value={searchCode}
             onChange={(e) => setSearchCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 12))}
             placeholder={t('enter_hash')}
-            className="w-full bg-gray-50 border-none rounded-[12px] py-4 pl-12 pr-4 text-sm text-agri-emerald font-bold placeholder-gray-300 focus:ring-2 focus:ring-agri-teal/10 outline-none"
+            className="w-full bg-gray-50 border-2 border-black/5 rounded-[14px] py-5 pl-14 pr-4 text-sm text-black font-black placeholder-gray-400 focus:border-black outline-none transition-colors"
           />
           <button 
             type="submit"
             disabled={searchCode.length !== 12 || isVerifying}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-agri-emerald text-white px-5 py-2 rounded-[10px] text-[10px] font-black shadow-lg shadow-agri-emerald/20 disabled:opacity-30"
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black text-white px-6 py-3 rounded-[12px] text-[11px] font-black shadow-xl disabled:opacity-30 active:scale-95 transition-transform"
           >
             {isVerifying ? '...' : t('verify')}
           </button>
         </form>
 
-        <div className="flex justify-between pt-4 border-t border-gray-50">
+        <div className="flex justify-between pt-6 border-t-2 border-gray-50">
           {[
-            [t('total_verified'), totalVerified.toString(), "text-agri-emerald"],
-            [t('avg_quality'), `${avgQuality}%`, "text-agri-teal"],
-            [t('total_earned'), totalEarned, "text-agri-clay"]
-          ].map(([label, val, color], i) => (
+            [t('total_verified'), totalVerified.toString()],
+            [t('avg_quality'), `${avgQuality}%`],
+            [t('total_earned'), totalEarned]
+          ].map(([label, val], i) => (
             <div key={i} className="text-center">
-              <div className={`text-lg font-black ${color}`}>{val}</div>
-              <div className="text-[9px] text-agri-clay/60 uppercase font-black tracking-tighter">{label}</div>
+              <div className="text-xl font-black text-black">{val}</div>
+              <div className="text-[9px] text-black uppercase font-black tracking-tighter opacity-40">{label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Advanced Bento Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        {/* Card 1: Market FairPlay */}
+      <div className="grid grid-cols-2 gap-5 mb-8">
         <BentoCard title="Market FairPlay" icon={TrendingUp} tooltipKey="fairplay">
           <div className="flex flex-col">
-            <div className="text-sm font-black text-agri-emerald mb-1">{MOCK_INSIGHTS.marketIndex.currentPrice}</div>
-            <div className="flex items-center gap-1.5 mb-3">
-              <span className="text-[10px] bg-agri-butter text-agri-emerald px-1.5 py-0.5 rounded-[6px] font-black">Grade {MOCK_INSIGHTS.marketIndex.qualityGrade}</span>
-              <ShieldCheck size={12} className="text-agri-teal" />
+            <div className="text-lg font-black text-black mb-1">{MOCK_INSIGHTS.marketIndex.currentPrice}</div>
+            <div className="flex items-center gap-1.5 mb-4">
+              <span className="text-[10px] bg-black text-white px-2 py-0.5 rounded-[6px] font-black uppercase tracking-widest">Grade {MOCK_INSIGHTS.marketIndex.qualityGrade}</span>
+              <ShieldCheck size={14} className="text-black" />
             </div>
-            <div className="text-[9px] text-agri-clay font-bold leading-tight">Index: {MOCK_INSIGHTS.marketIndex.fairPrice}</div>
+            <div className="text-[10px] text-black font-bold opacity-60">Value: {MOCK_INSIGHTS.marketIndex.fairPrice}</div>
           </div>
         </BentoCard>
 
-        {/* Card 2: Agri-Credit Score */}
         <BentoCard title="Agri-Credit" icon={CheckCircle} tooltipKey="credit">
           <div className="flex flex-col items-center">
-            <div className="relative w-16 h-16 flex items-center justify-center mb-2">
+            <div className="relative w-16 h-16 flex items-center justify-center mb-3">
               <svg className="w-full h-full transform -rotate-90">
-                <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-gray-50" />
-                <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={175} strokeDashoffset={175 - (175 * 0.87)} className="text-agri-teal" />
+                <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-gray-100" />
+                <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={175} strokeDashoffset={175 - (175 * 0.87)} className="text-black" />
               </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-[10px] font-black text-agri-emerald">{MOCK_INSIGHTS.creditScore}</span>
-              </div>
+              <span className="absolute text-xs font-black text-black">{MOCK_INSIGHTS.creditScore}</span>
             </div>
-            <button className="text-[8px] bg-agri-emerald text-white px-2 py-1.5 rounded-[8px] font-black w-full uppercase tracking-widest shadow-md shadow-agri-emerald/10">Apply for Loan</button>
+            <button className="text-[9px] bg-black text-white px-3 py-2 rounded-[10px] font-black w-full uppercase tracking-widest shadow-lg shadow-black/20">Get Loan</button>
           </div>
         </BentoCard>
 
-        {/* Card 3: Pest Radar */}
         <BentoCard title="Pest Radar" icon={AlertCircle} tooltipKey="pest">
-          <div className="h-20 bg-gray-50 rounded-[12px] relative overflow-hidden flex items-center justify-center border border-gray-100">
-             <div className="absolute w-4 h-4 bg-agri-coral/20 rounded-full animate-ping" />
-             <div className="absolute w-2 h-2 bg-agri-coral rounded-full" />
-             <div className="text-[8px] font-black text-agri-clay/40 absolute bottom-2 uppercase">Scanning District</div>
+          <div className="h-20 bg-gray-50 rounded-[14px] relative overflow-hidden flex items-center justify-center border-2 border-black/5">
+             <div className="absolute w-6 h-6 bg-black/5 rounded-full animate-ping" />
+             <div className="absolute w-2 h-2 bg-black rounded-full" />
+             <div className="text-[9px] font-black text-black opacity-30 absolute bottom-2 uppercase tracking-widest">Radar Active</div>
           </div>
         </BentoCard>
 
-        {/* Card 4: Value Recovery */}
         <BentoCard title="Value Recovery" icon={Trash2} tooltipKey="recovery">
           <div className="flex flex-col h-full justify-between">
-            <div className="text-[10px] text-agri-clay font-bold mb-2">Rejected Batch?</div>
-            <div className="space-y-1.5">
-              <div className="bg-agri-teal/5 p-1.5 rounded-[8px] flex justify-between items-center group cursor-pointer hover:bg-agri-teal/10 transition-colors">
-                <span className="text-[9px] font-black text-agri-teal uppercase">Animal Feed</span>
-                <ArrowUpRight size={10} className="text-agri-teal" />
-              </div>
-              <div className="bg-agri-coral/5 p-1.5 rounded-[8px] flex justify-between items-center group cursor-pointer hover:bg-agri-coral/10 transition-colors">
-                <span className="text-[9px] font-black text-agri-coral uppercase">Processing</span>
-                <ArrowUpRight size={10} className="text-agri-coral" />
+            <div className="text-[10px] text-black font-black uppercase mb-3 opacity-40">Rejected Batch?</div>
+            <div className="space-y-2">
+              <div className="bg-black text-white p-2 rounded-[10px] flex justify-between items-center group cursor-pointer shadow-md">
+                <span className="text-[10px] font-black uppercase">Sell Now</span>
+                <ArrowUpRight size={12} />
               </div>
             </div>
           </div>
@@ -178,12 +168,12 @@ export function Dashboard() {
       {/* Tooltip Modal */}
       <AnimatePresence>
         {activeTooltip && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-agri-emerald/20 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white p-6 rounded-[24px] shadow-2xl max-w-sm w-full relative border border-gray-100">
-              <button onClick={() => setActiveTooltip(null)} className="absolute top-4 right-4 text-agri-clay/40"><X size={20}/></button>
-              <div className="w-12 h-12 bg-agri-butter rounded-2xl flex items-center justify-center mb-4"><HelpCircle className="text-agri-emerald" /></div>
-              <h3 className="text-sm font-black text-agri-emerald mb-2 uppercase tracking-widest">Scientific Guide</h3>
-              <p className="text-xs text-agri-clay font-bold leading-relaxed">{TOOLTIPS[activeTooltip][lang] || TOOLTIPS[activeTooltip]['en']}</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white p-8 rounded-[32px] shadow-2xl max-w-sm w-full relative border-2 border-black/5">
+              <button onClick={() => setActiveTooltip(null)} className="absolute top-5 right-5 text-black opacity-30"><X size={24}/></button>
+              <div className="w-14 h-14 bg-black rounded-[18px] flex items-center justify-center mb-5"><HelpCircle className="text-white" size={28} /></div>
+              <h3 className="text-xl font-black text-black mb-3 uppercase tracking-widest">Guide</h3>
+              <p className="text-sm text-black font-black leading-relaxed opacity-60">{TOOLTIPS[activeTooltip][lang] || TOOLTIPS[activeTooltip]['en']}</p>
             </motion.div>
           </motion.div>
         )}

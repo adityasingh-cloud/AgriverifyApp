@@ -25,10 +25,7 @@ export function News() {
       const apiKey = import.meta.env.VITE_NEWS_API_KEY;
       
       try {
-        // NewsAPI often has issues with CORS on local dev, so we handle it gracefully
-        if (!apiKey || apiKey === 'YOUR_NEWS_API_KEY') {
-          throw new Error("Missing API Key");
-        }
+        if (!apiKey || apiKey === 'YOUR_NEWS_API_KEY') throw new Error("Missing API Key");
         
         const response = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(catQuery)}&sortBy=publishedAt&pageSize=15&apiKey=${apiKey}`);
         if (!response.ok) throw new Error("API Limit");
@@ -89,71 +86,73 @@ export function News() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col bg-agri-bg">
-      <div className="p-6 pb-2 border-b border-agri-border sticky top-0 bg-agri-bg/90 backdrop-blur-md z-10">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-display font-black text-white">{t('news_hub')}</h1>
-          <button onClick={handleListen} disabled={loading} className="flex items-center gap-2 bg-agri-green/10 text-agri-green px-3 py-1.5 rounded-full text-xs font-bold border border-agri-green/30 disabled:opacity-50">
-            <Volume2 size={14} /> {t('listen')}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col bg-agri-bg min-h-full">
+      <div className="p-6 pb-2 border-b border-gray-200 sticky top-0 bg-agri-bg/95 backdrop-blur-md z-10">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-display font-black text-black">{t('news_hub')}</h1>
+          <button onClick={handleListen} disabled={loading} className="flex items-center gap-2 bg-black text-white px-5 py-2 rounded-full text-xs font-black shadow-lg disabled:opacity-50 transition-transform active:scale-95">
+            <Volume2 size={16} /> {t('listen')}
           </button>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        <div className="relative mb-6">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-black" size={20} />
           <input 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder={t('search_news')}
-            className="w-full bg-agri-card border border-agri-border rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-agri-green outline-none"
+            className="w-full bg-white/50 border-2 border-black/5 rounded-[12px] py-4 pl-12 pr-4 text-sm text-black font-black placeholder-gray-500 focus:border-black outline-none"
           />
         </div>
 
-        {/* Categories */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-3">
           {CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
-                activeCategory === cat.id ? 'bg-agri-green text-black' : 'bg-agri-card text-gray-400 border border-agri-border'
+              className={`flex items-center gap-2 px-6 py-3 rounded-[12px] text-xs font-black whitespace-nowrap transition-all ${
+                activeCategory === cat.id ? 'bg-black text-white' : 'bg-white text-black border-2 border-black/5 shadow-sm'
               }`}
             >
-              <cat.icon size={14} />
+              <cat.icon size={16} />
               {t(cat.key)}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="p-4 space-y-4 pb-12">
+      <div className="p-5 space-y-5 pb-24">
         {loading ? (
-           <div className="flex justify-center py-10">
-              <div className="w-8 h-8 border-4 border-agri-green border-t-transparent rounded-full animate-spin"></div>
+           <div className="flex justify-center py-20">
+              <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
            </div>
         ) : filteredNews.length > 0 ? filteredNews.map((news) => (
-          <div key={news.id} className="bg-agri-card border border-agri-border rounded-2xl p-4 overflow-hidden relative">
+          <div key={news.id} className="bg-white border-2 border-black/5 rounded-[24px] p-5 shadow-xl shadow-gray-200/20 relative overflow-hidden">
             {news.isBreaking && (
-              <div className="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-xl uppercase tracking-wider">
+              <div className="absolute top-0 right-0 bg-black text-white text-[10px] font-black px-4 py-1.5 rounded-bl-[16px] uppercase tracking-widest">
                 {t('breaking')}
               </div>
             )}
-            <div className="flex items-center gap-2 mb-3">
-              {news.source.includes('X') ? <MessageSquare size={14} className="text-blue-400" /> : <Newspaper size={14} className="text-agri-green" />}
-              <span className="text-[10px] font-bold text-gray-400 uppercase">{news.source}</span>
-              <span className="text-[10px] text-gray-600">• {news.time}</span>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                {news.source.includes('X') ? <MessageSquare size={16} className="text-blue-500" /> : <Newspaper size={16} className="text-black" />}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-black uppercase tracking-widest">{news.source}</span>
+                <span className="text-[10px] text-gray-500 font-bold">{news.time}</span>
+              </div>
             </div>
-            <div className="text-sm font-bold text-white mb-1">{news.content}</div>
-            {news.description && <p className="text-xs text-gray-400 leading-relaxed mb-3 line-clamp-2">{news.description}</p>}
-            <div className="flex justify-between items-center border-t border-white/5 pt-3">
-              <span className="text-[10px] text-gray-500 font-semibold">{news.readTime}</span>
-              <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-xs text-agri-green font-bold flex items-center gap-1">
-                {t('read_more')} <ExternalLink size={12} />
+            <div className="text-lg font-black text-black mb-3 leading-tight">{news.content}</div>
+            {news.description && <p className="text-sm text-gray-800 leading-relaxed font-medium mb-4 line-clamp-3">{news.description}</p>}
+            <div className="flex justify-between items-center pt-4 border-t border-gray-50">
+              <span className="text-[10px] text-black font-black uppercase tracking-widest">{news.readTime}</span>
+              <a href={news.url} target="_blank" rel="noopener noreferrer" className="bg-black text-white text-[10px] font-black px-4 py-2 rounded-[10px] flex items-center gap-2 shadow-lg shadow-black/10">
+                {t('read_more')} <ExternalLink size={14} />
               </a>
             </div>
           </div>
         )) : (
-          <div className="text-center text-gray-500 text-sm mt-10">No articles found.</div>
+          <div className="text-center text-black font-black text-sm mt-10">No articles found.</div>
         )}
       </div>
     </motion.div>

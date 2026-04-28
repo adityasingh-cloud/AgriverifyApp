@@ -10,8 +10,8 @@
   --agri-coral: #FF6F61;
   --agri-clay: #C27E6A;
   --agri-butter: #F4E99B;
-  --agri-bg: #FFFFFF;
-  --agri-text: #191919;
+  --agri-bg: #FFFEF9;
+  --agri-text: #000000;
 }
 
 @layer base {
