@@ -5,19 +5,19 @@
 @tailwind utilities;
 
 :root {
-  --agri-indigo: #1A1A40;
-  --agri-azure: #0056B3;
-  --agri-forest: #008C45;
-  --agri-coral: #FF6F61;
+  --agri-emerald: #1E5128;
+  --agri-teal: #1E6F6B;
+  --agri-charcoal: #2D2D2D;
+  --agri-mint: #F1F8F4;
   --agri-bg: #FFFFFF;
 }
 
 @layer base {
   html, body, #root {
     background-color: var(--agri-bg);
-    color: var(--agri-indigo);
+    color: var(--agri-charcoal);
     font-family: 'DM Sans', sans-serif;
-    font-size: 18px; /* Senior-friendly base size */
+    font-size: 18px;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -30,29 +30,37 @@
   h1, h2, h3, h4, .font-display {
     font-family: 'Sora', sans-serif;
     font-weight: 800;
-    color: var(--agri-indigo);
+    color: var(--agri-emerald);
   }
 
   h1 { font-size: 32px; }
   h2 { font-size: 24px; }
   
   button {
-    @apply transition-all duration-200 active:scale-95;
-    border-radius: 12px;
+    @apply transition-all duration-300 active:scale-95;
+    border-radius: 20px; /* Modern Rounded Standard */
   }
 
   .btn-primary {
-    background-color: var(--agri-azure);
-    color: #FFFFFF;
+    background-color: var(--agri-teal);
+    color: #FFFFFF !important;
     font-weight: 700;
-    box-shadow: 0 4px 14px 0 rgba(0, 86, 179, 0.2);
+    box-shadow: 0 10px 25px -5px rgba(30, 111, 107, 0.2);
   }
 
-  /* Utility overrides for Demo Accessibility */
+  .card-premium {
+    background-color: var(--agri-mint);
+    border: 1px solid rgba(30, 81, 40, 0.05);
+    border-radius: 24px;
+  }
+
+  /* Utility overrides for Minimalist Restoration */
   .text-white { color: #FFFFFF !important; }
-  .text-black { color: var(--agri-indigo) !important; }
+  .text-emerald { color: var(--agri-emerald) !important; }
+  .text-teal { color: var(--agri-teal) !important; }
   .bg-agri-bg { background-color: var(--agri-bg) !important; }
-  .bg-agri-card { background-color: #FFFFFF !important; border: 1px solid rgba(26, 26, 64, 0.05) !important; }
+  .bg-agri-emerald { background-color: var(--agri-emerald) !important; }
+  .bg-agri-teal { background-color: var(--agri-teal) !important; }
 }
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }
