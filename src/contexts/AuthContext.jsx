@@ -1,143 +1,118 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { db, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
+import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const { user: auth0User, isAuthenticated, isLoading: auth0Loading, loginWithRedirect, logout: auth0Logout, getAccessTokenSilently } = useAuth0();
-  
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  const [posts, setPosts] = useState([]);
+  const [user, setUser]         = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [posts, setPosts]       = useState([]);
   const [comments, setComments] = useState({});
-  const [following, setFollowing] = useState([]);
+  const [following, setFollowing]       = useState([]);
   const [followersCount, setFollowersCount] = useState(0);
-  const [socialGraph, setSocialGraph] = useState({});
-  const [scans, setScans] = useState([]);
-  
-  const [onboardingSuccess, setOnboardingSuccess] = useState(false);
+  const [socialGraph, setSocialGraph]   = useState({});
+  const [scans, setScans]       = useState([]);
 
+  /* ─── Auth listener ─────────────────────────────────── */
   useEffect(() => {
-    console.log("AuthContext Sync - Auth0Loading:", auth0Loading, "IsAuthenticated:", isAuthenticated);
-    
-    if (auth0Loading) {
-      setLoading(true);
-      return;
-    }
-
-    const syncUser = async () => {
-      try {
-        if (isAuthenticated && auth0User) {
-          console.log("Syncing with Firestore for:", auth0User.sub);
-          const userDoc = await getDoc(doc(usersRef, auth0User.sub));
-          
-          if (userDoc.exists()) {
-            console.log("User Profile Found.");
-            const userData = userDoc.data();
-            setUser({ ...userData, isNew: false });
-            setupRealtimeListeners(auth0User.sub);
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const snap = await getDoc(doc(usersRef, firebaseUser.uid));
+          if (snap.exists()) {
+            setUser({ ...snap.data(), isNew: false });
+            setupListeners(firebaseUser.uid);
           } else {
-            console.log("No Firestore Profile. Marking as New.");
-            setUser({ uid: auth0User.sub, email: auth0User.email, isNew: true });
+            // Authenticated but no Firestore profile → onboarding
+            setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
           }
-        } else {
-          console.log("Not Authenticated with Auth0.");
-          setUser(null);
+        } catch (err) {
+          console.error('Firestore sync error:', err);
+          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
         }
-      } catch (err) {
-        console.error("Firestore Sync Error:", err);
-      } finally {
-        setLoading(false);
-        console.log("AuthContext Load Complete.");
+      } else {
+        setUser(null);
       }
-    };
-
-    syncUser();
-    
-    const savedScans = localStorage.getItem('agriverify_scans');
-    if (savedScans) setScans(JSON.parse(savedScans));
-
-  }, [isAuthenticated, auth0User, auth0Loading]);
-
-  const setupRealtimeListeners = (uid) => {
-    try {
-      const qPosts = query(postsRef, orderBy('createdAt', 'desc'));
-      const unsubPosts = onSnapshot(qPosts, (snapshot) => {
-        setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      });
-
-      const qFollowing = query(followersRef, where('followerId', '==', uid));
-      const unsubFollowing = onSnapshot(qFollowing, (snapshot) => {
-        setFollowing(snapshot.docs.map(doc => doc.data().targetId));
-      });
-
-      const qFollowers = query(followersRef, where('targetId', '==', uid));
-      const unsubFollowers = onSnapshot(qFollowers, (snapshot) => {
-        setFollowersCount(snapshot.docs.length);
-      });
-
       setLoading(false);
+    });
+
+    const saved = localStorage.getItem('agriverify_scans');
+    if (saved) setScans(JSON.parse(saved));
+
+    return unsub;
+  }, []);
+
+  /* ─── Realtime listeners ─────────────────────────────── */
+  const setupListeners = (uid) => {
+    try {
+      const unsubPosts = onSnapshot(
+        query(postsRef, orderBy('createdAt', 'desc')),
+        (snap) => setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      );
+      const unsubFollowing = onSnapshot(
+        query(followersRef, where('followerId', '==', uid)),
+        (snap) => setFollowing(snap.docs.map(d => d.data().targetId))
+      );
+      const unsubFollowers = onSnapshot(
+        query(followersRef, where('targetId', '==', uid)),
+        (snap) => setFollowersCount(snap.docs.length)
+      );
       return () => { unsubPosts(); unsubFollowing(); unsubFollowers(); };
     } catch (e) {
-      console.warn("Realtime listeners failed:", e);
-      setLoading(false);
+      console.warn('Listener setup failed:', e);
     }
   };
 
-  const login = async () => {
-    await loginWithRedirect();
-  };
-
-  const logout = () => {
-    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
-    setUser(null);
-    setPosts([]);
-    setFollowing([]);
+  /* ─── Auth actions ───────────────────────────────────── */
+  const loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged handles the rest
+    } catch (err) {
+      console.error('Google Sign-In error:', err);
+      alert('Google Sign-In failed: ' + err.message);
+    }
   };
 
   const completeProfile = async (formData) => {
-    if (!auth0User?.sub) {
-      console.error("No Auth0 sub found during profile completion.");
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser) {
+      alert('Session expired – please sign in again.');
       return;
     }
     setLoading(true);
-
     try {
-      console.log("Saving profile to Firestore for UID:", auth0User.sub);
+      const uid = firebaseUser.uid;
       const finalUser = {
         ...formData,
-        uid: auth0User.sub,
-        email: auth0User.email || '',
-        avatar: formData.avatar || auth0User.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
+        uid,
+        email: firebaseUser.email || '',
+        avatar:
+          formData.avatar ||
+          firebaseUser.photoURL ||
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
         nameLowerCase: formData.name.toLowerCase(),
         isPrivate: false,
         followersCount: 0,
         followingCount: 0,
-        isNew: false
+        isNew: false,
       };
-      
-      await setDoc(doc(usersRef, auth0User.sub), finalUser);
-      console.log("Profile saved successfully.");
-      
-      setOnboardingSuccess(true);
-      
-      // Update local state
+      await setDoc(doc(usersRef, uid), finalUser);
       setUser(finalUser);
-      setupRealtimeListeners(auth0User.sub);
-      
-      // Forceful redirect to prevent back-button loops
-      setTimeout(() => {
-        console.log("Redirecting to dashboard...");
-        window.location.replace('/');
-      }, 1500);
-
-    } catch (error) {
-      console.error("CRITICAL: Onboarding failed:", error);
-      alert("Failed to sync compliance profile. Error: " + error.message);
+      setupListeners(uid);
+    } catch (err) {
+      console.error('Profile save failed:', err);
+      alert('Failed to save profile: ' + err.message);
+    } finally {
       setLoading(false);
     }
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setPosts([]);
+    setFollowing([]);
   };
 
   const updateProfile = async (updates) => {
@@ -148,41 +123,31 @@ export function AuthProvider({ children }) {
     setUser(updated);
   };
 
-  const togglePrivacy = async () => {
-    await updateProfile({ isPrivate: !user.isPrivate });
-  };
+  const togglePrivacy = () => updateProfile({ isPrivate: !user.isPrivate });
 
-  const searchUsers = (searchQuery) => {
-    if (!searchQuery.trim()) {
-      setSocialGraph({});
-      return;
-    }
-    const searchLower = searchQuery.toLowerCase();
-    const q = query(usersRef, where('nameLowerCase', '>=', searchLower), where('nameLowerCase', '<=', searchLower + '\uf8ff'));
-    onSnapshot(q, (snapshot) => {
-      const results = {};
-      snapshot.docs.forEach(doc => {
-        if (doc.id !== user?.uid) results[doc.id] = doc.data();
-      });
-      setSocialGraph(results);
-    });
+  const searchUsers = (q) => {
+    if (!q.trim()) { setSocialGraph({}); return; }
+    const lower = q.toLowerCase();
+    onSnapshot(
+      query(usersRef, where('nameLowerCase', '>=', lower), where('nameLowerCase', '<=', lower + '\uf8ff')),
+      (snap) => {
+        const res = {};
+        snap.docs.forEach(d => { if (d.id !== user?.uid) res[d.id] = d.data(); });
+        setSocialGraph(res);
+      }
+    );
   };
 
   const toggleFollow = async (targetId) => {
     if (!user) return;
     const followId = `${user.uid}_${targetId}`;
     const isFollowing = following.includes(targetId);
-    
     if (isFollowing) {
       await deleteDoc(doc(followersRef, followId));
       await updateDoc(doc(usersRef, user.uid), { followingCount: increment(-1) });
       await updateDoc(doc(usersRef, targetId), { followersCount: increment(-1) });
     } else {
-      await setDoc(doc(followersRef, followId), {
-        followerId: user.uid,
-        targetId: targetId,
-        createdAt: Date.now()
-      });
+      await setDoc(doc(followersRef, followId), { followerId: user.uid, targetId, createdAt: Date.now() });
       await updateDoc(doc(usersRef, user.uid), { followingCount: increment(1) });
       await updateDoc(doc(usersRef, targetId), { followersCount: increment(1) });
     }
@@ -196,9 +161,9 @@ export function AuthProvider({ children }) {
       user: user.name,
       avatar: user.avatar,
       isPrivate: user.isPrivate || false,
-      location: user.city ? `${user.city}, ${user.state}` : "India",
+      location: user.city ? `${user.city}, ${user.state}` : 'India',
       likes: 0,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     });
   };
 
@@ -210,39 +175,41 @@ export function AuthProvider({ children }) {
       userName: user.name,
       avatar: user.avatar,
       text,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     });
   };
 
   const fetchComments = (postId) => {
-    const q = query(commentsRef, where('postId', '==', postId), orderBy('createdAt', 'asc'));
-    onSnapshot(q, (snapshot) => {
-      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setComments(prev => ({ ...prev, [postId]: fetched }));
-    });
+    onSnapshot(
+      query(commentsRef, where('postId', '==', postId), orderBy('createdAt', 'asc')),
+      (snap) => {
+        const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setComments(prev => ({ ...prev, [postId]: fetched }));
+      }
+    );
   };
 
   const addScan = (scanData) => {
-    const newScans = [scanData, ...scans];
-    setScans(newScans);
-    localStorage.setItem('agriverify_scans', JSON.stringify(newScans));
+    const updated = [scanData, ...scans];
+    setScans(updated);
+    localStorage.setItem('agriverify_scans', JSON.stringify(updated));
   };
 
+  // Compatibility shim for CameraFlow
   const getAuthToken = async () => {
-    try {
-      return await getAccessTokenSilently();
-    } catch (e) {
-      console.error("Token fetch failed", e);
-      return null;
-    }
+    try { return await auth.currentUser?.getIdToken(); }
+    catch { return null; }
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, login, completeProfile, logout, updateProfile, scans, addScan, 
-      posts, addPost, loading: loading || auth0Loading,
+    <AuthContext.Provider value={{
+      user, loading,
+      loginWithGoogle, completeProfile, logout, updateProfile,
+      scans, addScan,
+      posts, addPost,
       togglePrivacy, following, toggleFollow, socialGraph, searchUsers, followersCount,
-      comments, addComment, fetchComments, getAuthToken, onboardingSuccess
+      comments, addComment, fetchComments,
+      getAuthToken,
     }}>
       {children}
     </AuthContext.Provider>
