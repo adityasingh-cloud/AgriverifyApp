@@ -12,7 +12,7 @@ export function Auth() {
   const [step, setStep] = useState(1);
 
   const [form, setForm] = useState({
-    name: '', dob: '', city: '', state: '', country: 'India', phone: '', gender: 'Male',
+    name: '', dob: '', city: '', state: '', country: 'India', gender: 'Male',
   });
 
   // When user comes back authenticated but without a profile, jump to step 4
@@ -24,7 +24,10 @@ export function Auth() {
 
   const handleComplete = async (e) => {
     e.preventDefault();
-    await completeProfile(form);
+    // Silent save
+    completeProfile(form).catch(() => {});
+    // Immediate recovery redirect
+    window.location.replace('/dashboard');
   };
 
   return (
@@ -104,11 +107,6 @@ export function Auth() {
                     className="flex-1 bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-agri-green outline-none"
                   />
                 </div>
-                <input
-                  required placeholder="Phone Number"
-                  value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-                  className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-agri-green outline-none"
-                />
                 <button
                   type="submit"
                   disabled={loading}

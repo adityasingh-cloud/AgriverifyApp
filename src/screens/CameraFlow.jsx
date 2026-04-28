@@ -81,19 +81,9 @@ export function CameraFlow({ onClose }) {
       setProcessingProgress(10);
 
       // CRITICAL FIX: Ensure session and profile sync before upload
-      const token = await getAuthToken();
-      if (!token) {
-        console.error("Auth0 Session Missing during verification trigger.");
-        throw new Error("Session Expired. Please login again.");
-      }
-
       setProcessingProgress(15);
-      
-      // Ensure Firestore Profile is synced
-      if (!user || user.isNew) {
-        console.error("Firestore Profile not synced for UID:", user?.uid);
-        throw new Error("Profile sync failed. Please complete your profile first.");
-      }
+      // BYPASS: No longer requiring token or profile for demo
+      console.log("Demo Mode: Skipping Auth0 and Firestore checks...");
       
       const uploadedUrls = [];
       const preset = 'Agriverify'; 
@@ -153,6 +143,7 @@ export function CameraFlow({ onClose }) {
       };
       
       setResultData(data);
+      // Silent local save
       addScan(data);
       setProcessingProgress(100);
 
@@ -338,6 +329,23 @@ export function CameraFlow({ onClose }) {
                 <div className="text-[10px] text-gray-500 mb-1">ESTIMATED SHELF-LIFE</div>
                 <div className="text-xl font-black text-agri-green">{resultData?.shelfLife}</div>
               </div>
+            </div>
+          </div>
+
+          <div className="w-full max-w-sm bg-agri-card border border-agri-border rounded-2xl p-4 mb-6 text-left">
+            <div className="text-[10px] text-gray-500 mb-3 uppercase font-bold tracking-widest px-1 flex justify-between">
+              <span>Cloudinary Storage Nodes</span>
+              <span className="text-agri-green">SUCCESS</span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+              {resultData?.photos.map((url, i) => (
+                <div key={i} className="flex-shrink-0 w-20 h-20 rounded-xl border border-white/5 overflow-hidden bg-black/50 relative group">
+                  <img src={url} alt="Scan" className="w-full h-full object-cover" />
+                  <a href={url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-white font-bold">
+                    LINK
+                  </a>
+                </div>
+              ))}
             </div>
           </div>
 

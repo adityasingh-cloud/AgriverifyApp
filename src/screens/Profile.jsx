@@ -4,13 +4,13 @@ import { LogOut, Volume2, Globe, Shield, User as UserIcon, Award, Lock, Unlock, 
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
-export function Profile() {
+export function Profile({ setCurrentTab }) {
   const { user, logout, isPrivate, togglePrivacy, updateProfile, following } = useAuth();
   const { lang, setLang, voiceGender, setVoiceGender, availableLangs, t } = useLang();
   const fileInputRef = useRef(null);
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', phone: '', city: '', state: '' });
+  const [editForm, setEditForm] = useState({ name: '', city: '', state: '' });
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -44,7 +44,6 @@ export function Profile() {
   const startEditing = () => {
     setEditForm({ 
       name: user?.name || '', 
-      phone: user?.phone || '', 
       city: user?.city || '', 
       state: user?.state || '' 
     });
@@ -83,7 +82,6 @@ export function Profile() {
               <div className="text-lg font-bold text-white flex items-center gap-2">
                 {user?.name}
               </div>
-              <div className="text-xs text-gray-400 mb-1">{user?.phone}</div>
               <div className="flex items-center gap-1.5 bg-agri-green/10 border border-agri-green/30 px-2 py-0.5 rounded-md inline-flex">
                 <Award className="text-agri-green" size={12} />
                 <span className="text-[10px] text-agri-green font-bold uppercase tracking-wider">{t('certified_partner')}</span>
@@ -168,6 +166,12 @@ export function Profile() {
               <Shield className="text-green-400" size={18} /> {t('data_privacy')}
             </button>
             <button 
+              onClick={() => setCurrentTab('support')}
+              className="w-full p-4 border-b border-agri-border flex items-center gap-3 text-sm text-white font-semibold hover:bg-white/5 transition-colors"
+            >
+              <span className="text-xl">🤖</span> {t('support') || 'Support'}
+            </button>
+            <button 
               onClick={logout}
               className="w-full p-4 flex items-center gap-3 text-sm text-red-400 font-bold hover:bg-red-500/10 transition-colors"
             >
@@ -191,10 +195,6 @@ export function Profile() {
                 <div>
                   <label className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Name</label>
                   <input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white focus:border-agri-green outline-none" />
-                </div>
-                <div>
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 block">Phone</label>
-                  <input value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} className="w-full bg-agri-card border border-agri-border rounded-xl px-4 py-3 text-white focus:border-agri-green outline-none" />
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">

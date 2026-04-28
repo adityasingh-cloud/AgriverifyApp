@@ -4,6 +4,7 @@ import { Dashboard } from '../screens/Dashboard';
 import { Community } from '../screens/Community';
 import { News } from '../screens/News';
 import { Profile } from '../screens/Profile';
+import { Support } from '../screens/Support';
 import { CameraFlow } from '../screens/CameraFlow';
 import { AnimatePresence } from 'framer-motion';
 
@@ -17,7 +18,8 @@ export function Layout() {
         {currentTab === 'dashboard' && <Dashboard />}
         {currentTab === 'community' && <Community />}
         {currentTab === 'news' && <News />}
-        {currentTab === 'profile' && <Profile />}
+        {currentTab === 'profile' && <Profile setCurrentTab={setCurrentTab} />}
+        {currentTab === 'support' && <Support setCurrentTab={setCurrentTab} />}
       </div>
       
       <Navigation 

@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Phone, Mail, AlertTriangle } from 'lucide-react';
+import { Send, Phone, Mail, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const INITIAL_CHAT = [
   { id: 1, from: 'bot', text: "Namaste! 🌾 I'm AgriBot. I can help with crop quality, market prices, or technical support. How can I assist you today?" }
 ];
 
-export function Support() {
+export function Support({ setCurrentTab }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState(INITIAL_CHAT);
   const [input, setInput] = useState('');
@@ -54,6 +54,9 @@ export function Support() {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col h-full bg-agri-bg">
       <div className="p-4 border-b border-agri-border flex items-center gap-3 bg-agri-card/50 backdrop-blur-md sticky top-0 z-10">
+        <button onClick={() => setCurrentTab('profile')} className="p-2 text-gray-400 hover:text-white">
+          <ArrowLeft size={20} />
+        </button>
         <div className="w-10 h-10 rounded-xl bg-agri-green/20 flex items-center justify-center text-xl">🤖</div>
         <div>
           <h2 className="text-white font-bold text-sm">Hybrid AI Support</h2>

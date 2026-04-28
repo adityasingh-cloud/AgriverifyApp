@@ -1,25 +1,30 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy, deleteDoc } from "firebase/firestore";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, signOut, onAuthStateChanged } from "firebase/auth";
+// DEMO RECOVERY MODE: ALL FIREBASE SERVICES DISABLED
+// This file provides empty exports to satisfy imports without crashing.
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSy_MOCK_API_KEY_PLEASE_REPLACE",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "agriverify-d9dbb.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "agriverify-d9dbb",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "agriverify-d9dbb.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "797297057956",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:797297057956:web:mock12345"
-};
+export const db = null;
+export const auth = null;
+export const googleProvider = null;
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+export const usersRef = null;
+export const postsRef = null;
+export const commentsRef = null;
+export const followersRef = null;
 
-// Helper reference functions for easy access in Context
-export const usersRef = collection(db, "users");
-export const postsRef = collection(db, "posts");
-export const commentsRef = collection(db, "comments");
-export const followersRef = collection(db, "followers");
+export const doc = () => null;
+export const setDoc = async () => {};
+export const getDoc = async () => ({ exists: () => false, data: () => ({}) });
+export const getDocs = async () => ({ docs: [] });
+export const onSnapshot = () => () => {};
+export const query = () => null;
+export const where = () => null;
+export const updateDoc = async () => {};
+export const increment = () => 0;
+export const addDoc = async () => ({ id: 'mock-id' });
+export const orderBy = () => null;
+export const deleteDoc = async () => {};
 
-export { doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy, deleteDoc, signInWithPopup, signInWithRedirect, signInAnonymously, signOut, onAuthStateChanged };
+export const signInWithPopup = async () => {};
+export const signInWithRedirect = async () => {};
+export const signInAnonymously = async () => {};
+export const signOut = async () => {};
+export const onAuthStateChanged = () => () => {};
