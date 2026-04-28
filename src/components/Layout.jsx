@@ -44,7 +44,6 @@ export function Layout({ children, currentTab, setCurrentTab, onCameraClick }) {
     setIsRefreshing(true);
     setPullProgress(0);
     
-    // Logic: Simulate clearing cache and re-randomizing mock data
     setTimeout(() => {
       setIsRefreshing(false);
       setShowSuccess(true);
@@ -55,7 +54,7 @@ export function Layout({ children, currentTab, setCurrentTab, onCameraClick }) {
 
   return (
     <div 
-      className="h-full w-full bg-white flex flex-col relative overflow-hidden pb-[env(safe-area-inset-bottom)]"
+      className="h-full w-full bg-[#F0F7FF] flex flex-col relative overflow-hidden pb-[env(safe-area-inset-bottom)]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -88,7 +87,7 @@ export function Layout({ children, currentTab, setCurrentTab, onCameraClick }) {
 
       <div 
         ref={containerRef}
-        className={`flex-1 ${currentTab === 'support' ? 'overflow-hidden' : 'overflow-y-auto'} hide-scrollbar pb-24 touch-pan-y transition-transform duration-300 ease-out`}
+        className={`flex-1 ${currentTab === 'support' ? 'overflow-hidden' : 'overflow-y-auto'} hide-scrollbar pb-32 touch-pan-y transition-transform duration-300 ease-out`}
         style={{ 
           WebkitOverflowScrolling: 'touch',
           transform: pullProgress > 0 ? `translateY(${pullProgress * 50}px)` : (isRefreshing ? 'translateY(60px)' : 'translateY(0)')
