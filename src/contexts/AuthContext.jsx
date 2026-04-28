@@ -86,10 +86,14 @@ export function AuthProvider({ children }) {
   };
 
   const completeProfile = async (formData) => {
-    if (!auth0User?.sub) return;
+    if (!auth0User?.sub) {
+      console.error("No Auth0 sub found during profile completion.");
+      return;
+    }
     setLoading(true);
 
     try {
+      console.log("Saving profile to Firestore for UID:", auth0User.sub);
       const finalUser = {
         ...formData,
         uid: auth0User.sub,
@@ -102,22 +106,23 @@ export function AuthProvider({ children }) {
         isNew: false
       };
       
-      // Save to Firestore using Auth0 sub as document ID
       await setDoc(doc(usersRef, auth0User.sub), finalUser);
+      console.log("Profile saved successfully.");
       
-      // Visual feedback: Trigger Success Checkmark
       setOnboardingSuccess(true);
       
-      // Wait for a second so user sees the success state
-      setTimeout(async () => {
-        setUser(finalUser);
-        setupRealtimeListeners(auth0User.sub);
+      // Force app state update
+      setUser(finalUser);
+      setupRealtimeListeners(auth0User.sub);
+      
+      // If the app doesn't redirect in 2 seconds, force a reload to be safe
+      setTimeout(() => {
         setLoading(false);
-      }, 1500);
+      }, 1000);
 
     } catch (error) {
-      console.error("Onboarding failed:", error);
-      alert("Verification Sync Failed. Please check your connection.");
+      console.error("CRITICAL: Onboarding failed:", error);
+      alert("Failed to sync compliance profile. Error: " + error.message);
       setLoading(false);
     }
   };

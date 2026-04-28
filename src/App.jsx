@@ -7,8 +7,19 @@ import { Layout } from './components/Layout';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const [safetyTimeout, setSafetyTimeout] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) {
+        console.warn("Auth check taking too long, triggering safety timeout.");
+        setSafetyTimeout(true);
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [loading]);
   
-  if (loading) {
+  if (loading && !safetyTimeout) {
     return (
       <div className="h-screen w-screen bg-agri-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -19,11 +30,11 @@ function AppContent() {
     );
   }
   
-  // Logic: 
-  // 1. If no user (from Auth0) -> Show Login screen
-  // 2. If user exists but isNew (no Firestore doc) -> Show Onboarding screen
-  // 3. If user exists and NOT isNew -> Show Main Dashboard
-  if (!user || user.isNew) {
+  // Logic Fix: 
+  // 1. If no user OR user isNew -> Auth screen (Login/Onboarding)
+  // 2. If user exists and NOT isNew -> Layout (Dashboard)
+  // Safety timeout also falls through to Auth screen
+  if (!user || user.isNew || safetyTimeout) {
     return <Auth />;
   }
 

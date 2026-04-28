@@ -111,6 +111,7 @@ export function CameraFlow({ onClose }) {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+          console.log(`Starting Cloudinary upload for image ${i+1}...`);
           const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
             method: 'POST',
             body: formData,
@@ -121,16 +122,18 @@ export function CameraFlow({ onClose }) {
           
           if (!res.ok) {
             const errorData = await res.json();
+            console.error(`Cloudinary Upload ${i+1} failed with status ${res.status}:`, errorData);
             throw new Error(errorData.error?.message || `HTTP ${res.status}: Upload failed`);
           }
           
           const data = await res.json();
+          console.log(`Cloudinary Upload ${i+1} successful:`, data.secure_url);
           uploadedUrls.push(data.secure_url);
         } catch (uploadError) {
-          console.error("Cloudinary Upload Detail:", uploadError);
+          console.error(`Detailed Error for Image ${i+1}:`, uploadError);
           const msg = uploadError.name === 'AbortError' ? 'Upload Timeout (30s)' : uploadError.message;
           setErrorDetails(`Photo ${i+1}: ${msg}`);
-          throw new Error(msg); // Stop the loop and trigger global catch
+          throw new Error(msg); 
         }
       }
 
