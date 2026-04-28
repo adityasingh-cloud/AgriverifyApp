@@ -11,7 +11,7 @@ function AppContent() {
   // Safety: if still loading after 8s, show recovery screen
   useEffect(() => {
     if (!loading) { setTimedOut(false); return; }
-    const t = setTimeout(() => setTimedOut(true), 8000);
+    const t = setTimeout(() => setTimedOut(true), 30000);
     return () => clearTimeout(t);
   }, [loading]);
 

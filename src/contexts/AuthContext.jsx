@@ -75,21 +75,23 @@ export function AuthProvider({ children }) {
   };
 
   const completeProfile = async (formData) => {
-    const firebaseUser = auth.currentUser;
-    if (!firebaseUser) {
-      alert('Session expired – please sign in again.');
+    // Use uid from React state — never rely on auth.currentUser which can
+    // momentarily be null during Firebase token refresh cycles.
+    const uid = user?.uid;
+    if (!uid) {
+      alert('Your session could not be found. Please sign in again.');
       return;
     }
     setLoading(true);
     try {
-      const uid = firebaseUser.uid;
+      const firebaseUser = auth.currentUser; // may be null; use uid from state as fallback
       const finalUser = {
         ...formData,
         uid,
-        email: firebaseUser.email || '',
+        email: user?.email || firebaseUser?.email || '',
         avatar:
           formData.avatar ||
-          firebaseUser.photoURL ||
+          firebaseUser?.photoURL ||
           `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
         nameLowerCase: formData.name.toLowerCase(),
         isPrivate: false,
