@@ -63,6 +63,16 @@ export function CameraFlow({ onClose }) {
     }
   };
 
+  useEffect(() => {
+    // Auto-trigger camera for the first 3 photos
+    if (step < 3) {
+      const timer = setTimeout(() => {
+        triggerCamera();
+      }, 800); // Slight delay for smooth animation transition
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
   const processAndUpload = async (capturedPhotos) => {
     try {
       setProcessingProgress(10);

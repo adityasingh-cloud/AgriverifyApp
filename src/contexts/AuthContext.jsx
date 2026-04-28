@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy } from '../firebase';
+import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -131,16 +131,25 @@ export function AuthProvider({ children }) {
     try {
       const followId = `${user.uid}_${targetId}`;
       const isFollowing = following.includes(targetId);
+      
       if (isFollowing) {
-        // Mock unfollow for demo
+        await deleteDoc(doc(followersRef, followId));
+        // Update counts
+        await updateDoc(doc(usersRef, user.uid), { followingCount: increment(-1) });
+        await updateDoc(doc(usersRef, targetId), { followersCount: increment(-1) });
       } else {
         await setDoc(doc(followersRef, followId), {
           followerId: user.uid,
           targetId: targetId,
           createdAt: Date.now()
         });
+        // Update counts
+        await updateDoc(doc(usersRef, user.uid), { followingCount: increment(1) });
+        await updateDoc(doc(usersRef, targetId), { followersCount: increment(1) });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Follow/Unfollow error:", e);
+    }
   };
 
   const addPost = async (postData) => {
@@ -151,11 +160,14 @@ export function AuthProvider({ children }) {
         userId: user.uid,
         user: user.name,
         avatar: user.avatar,
+        isPrivate: user.isPrivate || false, // Add privacy flag to post
         location: user.city ? `${user.city}, ${user.state}` : "India",
         likes: 0,
         createdAt: Date.now()
       });
-    } catch(e) {}
+    } catch(e) {
+      console.error("Add post error:", e);
+    }
   };
 
   const addComment = async (postId, text) => {

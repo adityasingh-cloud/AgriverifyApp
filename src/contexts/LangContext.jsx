@@ -50,7 +50,8 @@ export function LangProvider({ children }) {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const chunks = code.match(/.{1,2}/g).join(', ');
-      const text = `${prefix} ${chunks}. Repeating: ${chunks}.`;
+      // Using translations for the 'Repeating' part of the voice feedback
+      const text = `${prefix} ${chunks}. ${t('repeating') || 'Repeating'}: ${chunks}.`;
       const utterance = new SpeechSynthesisUtterance(text);
       const langCode = lang === 'hi' ? 'hi-IN' : lang === 'mr' ? 'mr-IN' : lang === 'bn' ? 'bn-IN' : lang === 'te' ? 'te-IN' : lang === 'pa' ? 'pa-IN' : 'en-IN';
       utterance.lang = langCode;

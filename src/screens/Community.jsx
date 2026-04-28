@@ -140,27 +140,45 @@ export function Community() {
             <div key={post.id} className="bg-agri-card border border-agri-border rounded-2xl p-5">
               <div className="flex items-center gap-3 mb-3 cursor-pointer" onClick={() => post.userId !== user?.uid && setSelectedUser(post.userId)}>
                 <img src={post.avatar || 'https://ui-avatars.com/api/?name=Farmer&background=475569&color=fff'} className="w-10 h-10 rounded-full border border-white/10" />
-                <div>
-                  <div className="text-sm font-bold text-white hover:text-agri-green transition-colors">{post.user}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className="text-sm font-bold text-white hover:text-agri-green transition-colors">{post.user}</div>
+                    {post.isPrivate && <Lock size={10} className="text-gray-500" />}
+                  </div>
                   <div className="text-[10px] text-gray-500">{post.location}</div>
                 </div>
               </div>
-              {post.content && <p className="text-sm text-gray-300 mb-4 leading-relaxed">{post.content}</p>}
-              
-              {post.image && (
-                <div className="rounded-xl overflow-hidden border border-white/10 mb-4 bg-black/50 flex justify-center">
-                  <img src={post.image} alt="post" className="max-h-64 object-contain" />
+
+              {post.isPrivate && post.userId !== user?.uid && !following.includes(post.userId) ? (
+                <div className="bg-black/20 border border-white/5 rounded-xl p-8 flex flex-col items-center justify-center text-center mb-4">
+                  <Lock size={32} className="text-gray-600 mb-2" />
+                  <div className="text-xs font-bold text-gray-400">{t('private_content')}</div>
+                  <div className="text-[10px] text-gray-600 mt-1">{t('follow_to_view')}</div>
                 </div>
+              ) : (
+                <>
+                  {post.content && <p className="text-sm text-gray-300 mb-4 leading-relaxed">{post.content}</p>}
+                  {post.image && (
+                    <div className="rounded-xl overflow-hidden border border-white/10 mb-4 bg-black/50 flex justify-center">
+                      <img src={post.image} alt="post" className="max-h-64 object-contain" />
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="flex items-center gap-6 border-t border-white/5 pt-3">
                 <button 
                   onClick={() => toggleLike(post.id)}
-                  className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${post.isLiked ? 'text-red-400' : 'text-gray-400'}`}
+                  disabled={post.isPrivate && post.userId !== user?.uid && !following.includes(post.userId)}
+                  className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${post.isLiked ? 'text-red-400' : 'text-gray-400'} disabled:opacity-30`}
                 >
                   <Heart size={16} fill={post.isLiked ? "currentColor" : "none"} /> {post.likes || 0}
                 </button>
-                <button onClick={() => openComments(post.id)} className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => openComments(post.id)} 
+                  disabled={post.isPrivate && post.userId !== user?.uid && !following.includes(post.userId)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white transition-colors disabled:opacity-30"
+                >
                   <MessageCircle size={16} /> {comments[post.id]?.length || 0}
                 </button>
                 <button className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-white transition-colors ml-auto">
@@ -245,8 +263,12 @@ export function Community() {
                 <h2 className="text-2xl font-display font-black text-white">{socialGraph[selectedUser].name}</h2>
                 <div className="flex gap-6 mt-4 mb-6">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-white">Live</div>
+                    <div className="text-xl font-bold text-white">{socialGraph[selectedUser].followersCount || 0}</div>
                     <div className="text-xs text-gray-400">{t('followers')}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-white">{socialGraph[selectedUser].followingCount || 0}</div>
+                    <div className="text-xs text-gray-400">{t('following')}</div>
                   </div>
                 </div>
 
