@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
+import { useAuth0 } from '@auth0/auth0-react';
+import { db, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const { user: auth0User, isAuthenticated, isLoading: auth0Loading, loginWithRedirect, logout: auth0Logout, getAccessTokenSilently } = useAuth0();
+  
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -15,28 +18,33 @@ export function AuthProvider({ children }) {
   const [scans, setScans] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (auth0Loading) return;
+
+    const syncUser = async () => {
       setLoading(true);
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(usersRef, firebaseUser.uid));
+      if (isAuthenticated && auth0User) {
+        // Sync with Firestore using Auth0 sub as ID
+        const userDoc = await getDoc(doc(usersRef, auth0User.sub));
         if (userDoc.exists()) {
           setUser(userDoc.data());
-          setupRealtimeListeners(firebaseUser.uid);
+          setupRealtimeListeners(auth0User.sub);
         } else {
-          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
+          // Trigger Onboarding (user exists in Auth0 but not in Firestore)
+          setUser({ uid: auth0User.sub, email: auth0User.email, isNew: true });
           setLoading(false);
         }
       } else {
         setUser(null);
         setLoading(false);
       }
-    });
+    };
 
+    syncUser();
+    
     const savedScans = localStorage.getItem('agriverify_scans');
     if (savedScans) setScans(JSON.parse(savedScans));
 
-    return () => unsubscribe();
-  }, []);
+  }, [isAuthenticated, auth0User, auth0Loading]);
 
   const setupRealtimeListeners = (uid) => {
     try {
@@ -58,61 +66,55 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return () => { unsubPosts(); unsubFollowing(); unsubFollowers(); };
     } catch (e) {
-      console.warn("Firebase config missing. Operating in offline mode.", e);
+      console.warn("Realtime listeners failed:", e);
       setLoading(false);
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Google Auth Failed", error);
-      alert("Google Sign-In failed. Please try again.");
-    }
+  const login = async () => {
+    await loginWithRedirect({
+      authorizationParams: {
+        connection: 'email' // For Passwordless Email OTP if configured in Auth0
+      }
+    });
   };
 
-  const completeProfile = async (formData, fallbackUid = null) => {
-    const uid = fallbackUid || user?.uid;
-    if (!uid) return;
+  const logout = () => {
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+    setUser(null);
+    setPosts([]);
+    setFollowing([]);
+  };
+
+  const completeProfile = async (formData) => {
+    if (!auth0User?.sub) return;
 
     const finalUser = {
       ...formData,
-      uid,
-      email: user?.email || '',
-      avatar: formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
+      uid: auth0User.sub,
+      email: auth0User.email || '',
+      avatar: formData.avatar || auth0User.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
       nameLowerCase: formData.name.toLowerCase(),
       isPrivate: false,
       followersCount: 0,
       followingCount: 0
     };
     
-    await setDoc(doc(usersRef, uid), finalUser, { merge: true });
+    await setDoc(doc(usersRef, auth0User.sub), finalUser, { merge: true });
     setUser(finalUser);
-    setupRealtimeListeners(uid);
-  };
-
-  const logout = () => {
-    signOut(auth).then(() => {
-      setUser(null);
-      setPosts([]);
-      setFollowing([]);
-      localStorage.removeItem('agriverify_user');
-    });
+    setupRealtimeListeners(auth0User.sub);
   };
 
   const updateProfile = async (updates) => {
+    if (!user?.uid) return;
     const updated = { ...user, ...updates };
     if (updates.name) updated.nameLowerCase = updates.name.toLowerCase();
-    try {
-      await setDoc(doc(usersRef, user.uid), updated, { merge: true });
-    } catch(e) {}
+    await setDoc(doc(usersRef, user.uid), updated, { merge: true });
     setUser(updated);
   };
 
   const togglePrivacy = async () => {
-    const newStatus = !user.isPrivate;
-    await updateProfile({ isPrivate: newStatus });
+    await updateProfile({ isPrivate: !user.isPrivate });
   };
 
   const searchUsers = (searchQuery) => {
@@ -133,58 +135,48 @@ export function AuthProvider({ children }) {
 
   const toggleFollow = async (targetId) => {
     if (!user) return;
-    try {
-      const followId = `${user.uid}_${targetId}`;
-      const isFollowing = following.includes(targetId);
-      
-      if (isFollowing) {
-        await deleteDoc(doc(followersRef, followId));
-        await updateDoc(doc(usersRef, user.uid), { followingCount: increment(-1) });
-        await updateDoc(doc(usersRef, targetId), { followersCount: increment(-1) });
-      } else {
-        await setDoc(doc(followersRef, followId), {
-          followerId: user.uid,
-          targetId: targetId,
-          createdAt: Date.now()
-        });
-        await updateDoc(doc(usersRef, user.uid), { followingCount: increment(1) });
-        await updateDoc(doc(usersRef, targetId), { followersCount: increment(1) });
-      }
-    } catch (e) {
-      console.error("Follow/Unfollow error:", e);
+    const followId = `${user.uid}_${targetId}`;
+    const isFollowing = following.includes(targetId);
+    
+    if (isFollowing) {
+      await deleteDoc(doc(followersRef, followId));
+      await updateDoc(doc(usersRef, user.uid), { followingCount: increment(-1) });
+      await updateDoc(doc(usersRef, targetId), { followersCount: increment(-1) });
+    } else {
+      await setDoc(doc(followersRef, followId), {
+        followerId: user.uid,
+        targetId: targetId,
+        createdAt: Date.now()
+      });
+      await updateDoc(doc(usersRef, user.uid), { followingCount: increment(1) });
+      await updateDoc(doc(usersRef, targetId), { followersCount: increment(1) });
     }
   };
 
   const addPost = async (postData) => {
     if (!user) return;
-    try {
-      await addDoc(postsRef, {
-        ...postData,
-        userId: user.uid,
-        user: user.name,
-        avatar: user.avatar,
-        isPrivate: user.isPrivate || false,
-        location: user.city ? `${user.city}, ${user.state}` : "India",
-        likes: 0,
-        createdAt: Date.now()
-      });
-    } catch(e) {
-      console.error("Add post error:", e);
-    }
+    await addDoc(postsRef, {
+      ...postData,
+      userId: user.uid,
+      user: user.name,
+      avatar: user.avatar,
+      isPrivate: user.isPrivate || false,
+      location: user.city ? `${user.city}, ${user.state}` : "India",
+      likes: 0,
+      createdAt: Date.now()
+    });
   };
 
   const addComment = async (postId, text) => {
     if (!user) return;
-    try {
-      await addDoc(commentsRef, {
-        postId,
-        userId: user.uid,
-        userName: user.name,
-        avatar: user.avatar,
-        text,
-        createdAt: Date.now()
-      });
-    } catch(e) {}
+    await addDoc(commentsRef, {
+      postId,
+      userId: user.uid,
+      userName: user.name,
+      avatar: user.avatar,
+      text,
+      createdAt: Date.now()
+    });
   };
 
   const fetchComments = (postId) => {
@@ -201,14 +193,23 @@ export function AuthProvider({ children }) {
     localStorage.setItem('agriverify_scans', JSON.stringify(newScans));
   };
 
+  const getAuthToken = async () => {
+    try {
+      return await getAccessTokenSilently();
+    } catch (e) {
+      console.error("Token fetch failed", e);
+      return null;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
-      user, loginWithGoogle, completeProfile, logout, updateProfile, scans, addScan, 
-      posts, addPost, loading,
+      user, login, completeProfile, logout, updateProfile, scans, addScan, 
+      posts, addPost, loading: loading || auth0Loading,
       togglePrivacy, following, toggleFollow, socialGraph, searchUsers, followersCount,
-      comments, addComment, fetchComments
+      comments, addComment, fetchComments, getAuthToken
     }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

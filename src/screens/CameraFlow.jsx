@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export function CameraFlow({ onClose }) {
   const { t, speakSlowly } = useLang();
-  const { addScan, addPost, user } = useAuth();
+  const { addScan, addPost, user, getAuthToken } = useAuth();
   
   const ANGLES = [
     { id: 'top', label: t('camera_top'), icon: '⬆️', desc: t('camera_top_desc') },
@@ -79,9 +79,15 @@ export function CameraFlow({ onClose }) {
     try {
       setErrorDetails(null);
       setProcessingProgress(10);
+
+      // Fix 60% error: Validate Auth0 Token before upload
+      const token = await getAuthToken();
+      if (!token) {
+        throw new Error("Invalid Session. Please login again.");
+      }
       
       const uploadedUrls = [];
-      const preset = 'Agriverify'; // Explicitly set to the user's preset name
+      const preset = 'Agriverify'; 
       const cloudName = 'dc8suuh6h';
 
       for (let i = 0; i < capturedPhotos.length; i++) {

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.16.2",
     "firebase": "^12.12.1",
     "framer-motion": "^12.38.0",
     "i18next": "^26.0.8",
