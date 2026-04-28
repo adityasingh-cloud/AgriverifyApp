@@ -20,25 +20,37 @@ export function AuthProvider({ children }) {
   const [onboardingSuccess, setOnboardingSuccess] = useState(false);
 
   useEffect(() => {
-    if (auth0Loading) return;
+    console.log("AuthContext Sync - Auth0Loading:", auth0Loading, "IsAuthenticated:", isAuthenticated);
+    
+    if (auth0Loading) {
+      setLoading(true);
+      return;
+    }
 
     const syncUser = async () => {
-      setLoading(true);
-      if (isAuthenticated && auth0User) {
-        // Sync with Firestore using Auth0 sub as ID (user.sub)
-        const userDoc = await getDoc(doc(usersRef, auth0User.sub));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUser({ ...userData, isNew: false });
-          setupRealtimeListeners(auth0User.sub);
+      try {
+        if (isAuthenticated && auth0User) {
+          console.log("Syncing with Firestore for:", auth0User.sub);
+          const userDoc = await getDoc(doc(usersRef, auth0User.sub));
+          
+          if (userDoc.exists()) {
+            console.log("User Profile Found.");
+            const userData = userDoc.data();
+            setUser({ ...userData, isNew: false });
+            setupRealtimeListeners(auth0User.sub);
+          } else {
+            console.log("No Firestore Profile. Marking as New.");
+            setUser({ uid: auth0User.sub, email: auth0User.email, isNew: true });
+          }
         } else {
-          // User authenticated in Auth0 but profile missing in Firestore
-          setUser({ uid: auth0User.sub, email: auth0User.email, isNew: true });
-          setLoading(false);
+          console.log("Not Authenticated with Auth0.");
+          setUser(null);
         }
-      } else {
-        setUser(null);
+      } catch (err) {
+        console.error("Firestore Sync Error:", err);
+      } finally {
         setLoading(false);
+        console.log("AuthContext Load Complete.");
       }
     };
 

@@ -30,20 +30,42 @@ function AppContent() {
       <div className="h-screen w-screen bg-agri-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-agri-green border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-agri-green font-bold animate-pulse text-xs uppercase tracking-widest leading-loose">Checking Compliance Session...</p>
+          <p className="text-agri-green font-bold animate-pulse text-xs uppercase tracking-widest leading-loose text-center">
+            {t('loading_compliance') || 'Checking Compliance Session...'}
+          </p>
         </div>
       </div>
     );
   }
   
-  // Logic Fix: 
-  // 1. If no user OR user isNew -> Auth screen (Login/Onboarding)
-  // 2. If user exists and NOT isNew -> Layout (Dashboard)
-  // Safety timeout also falls through to Auth screen
-  if (!user || user.isNew || safetyTimeout) {
+  if (safetyTimeout) {
+    console.error("Safety timeout reached. Rendering recovery UI.");
+    return (
+      <div className="h-screen w-screen bg-agri-bg flex flex-col items-center justify-center p-6 text-center">
+        <div className="text-4xl mb-4">⚠️</div>
+        <h2 className="text-xl font-bold text-white mb-2">Connection Timeout</h2>
+        <p className="text-gray-400 text-sm mb-8">We are having trouble syncing your session. Please try again.</p>
+        <button 
+          onClick={() => {
+            sessionStorage.clear();
+            localStorage.clear();
+            window.location.replace('/');
+          }}
+          className="bg-agri-green text-black px-8 py-3 rounded-xl font-bold shadow-lg"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // Final Routing Logic
+  if (!user || user.isNew) {
+    console.log("Routing to Auth screen.");
     return <Auth />;
   }
 
+  console.log("Routing to Main Dashboard.");
   return <Layout />;
 }
 
