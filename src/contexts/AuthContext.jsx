@@ -8,8 +8,8 @@ const INITIAL_POSTS = [
 ];
 
 const INITIAL_GRAPH = {
-  'kiran123': { name: 'Kiran Patil', followers: 1200, following: 45, isPrivate: false },
-  'arjun456': { name: 'Arjun Singh', followers: 850, following: 120, isPrivate: true }
+  'kiran123': { name: 'Kiran Patil', followers: 1200, following: 45, isPrivate: false, avatar: 'https://ui-avatars.com/api/?name=Kiran+Patil&background=22c55e&color=fff' },
+  'arjun456': { name: 'Arjun Singh', followers: 850, following: 120, isPrivate: true, avatar: 'https://ui-avatars.com/api/?name=Arjun+Singh&background=475569&color=fff' }
 };
 
 export function AuthProvider({ children }) {
@@ -18,7 +18,6 @@ export function AuthProvider({ children }) {
   const [scans, setScans] = useState([]);
   const [posts, setPosts] = useState(INITIAL_POSTS);
   
-  // Social State
   const [following, setFollowing] = useState([]);
   const [isPrivate, setIsPrivate] = useState(false);
   const [socialGraph, setSocialGraph] = useState(INITIAL_GRAPH);
@@ -29,16 +28,22 @@ export function AuthProvider({ children }) {
     const savedPosts = localStorage.getItem('agriverify_posts');
     const savedFollowing = localStorage.getItem('agriverify_following');
     const savedPrivacy = localStorage.getItem('agriverify_privacy');
+    const savedGraph = localStorage.getItem('agriverify_graph');
     
     if (savedUser) setUser(JSON.parse(savedUser));
     if (savedScans) setScans(JSON.parse(savedScans));
     if (savedPosts) setPosts(JSON.parse(savedPosts));
     if (savedFollowing) setFollowing(JSON.parse(savedFollowing));
     if (savedPrivacy) setIsPrivate(savedPrivacy === 'true');
+    if (savedGraph) setSocialGraph(JSON.parse(savedGraph));
     setLoading(false);
   }, []);
 
   const login = (userData) => {
+    // Inject auto-generated avatar if no image provided
+    if (!userData.avatar) {
+      userData.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=1e293b&color=fff`;
+    }
     setUser(userData);
     localStorage.setItem('agriverify_user', JSON.stringify(userData));
   };
@@ -52,6 +57,12 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('agriverify_following');
   };
 
+  const updateProfile = (updates) => {
+    const updated = { ...user, ...updates };
+    setUser(updated);
+    localStorage.setItem('agriverify_user', JSON.stringify(updated));
+  };
+
   const togglePrivacy = () => {
     const newStatus = !isPrivate;
     setIsPrivate(newStatus);
@@ -59,14 +70,22 @@ export function AuthProvider({ children }) {
   };
 
   const toggleFollow = (userId) => {
+    const isFollowing = following.includes(userId);
     let newFollowing;
-    if (following.includes(userId)) {
+    const newGraph = { ...socialGraph };
+    
+    if (isFollowing) {
       newFollowing = following.filter(id => id !== userId);
+      newGraph[userId].followers -= 1;
     } else {
       newFollowing = [...following, userId];
+      newGraph[userId].followers += 1;
     }
+    
     setFollowing(newFollowing);
+    setSocialGraph(newGraph);
     localStorage.setItem('agriverify_following', JSON.stringify(newFollowing));
+    localStorage.setItem('agriverify_graph', JSON.stringify(newGraph));
   };
 
   const addScan = (scanData) => {
@@ -94,7 +113,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ 
-      user, login, logout, scans, addScan, posts, addPost, toggleLike, loading,
+      user, login, logout, updateProfile, scans, addScan, posts, addPost, toggleLike, loading,
       isPrivate, togglePrivacy, following, toggleFollow, socialGraph
     }}>
       {!loading && children}

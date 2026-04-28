@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { LogOut, Volume2, Globe, Shield, User as UserIcon, Award, Lock, Unlock } from 'lucide-react';
+import { LogOut, Volume2, Globe, Shield, User as UserIcon, Award, Lock, Unlock, Camera } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
 export function Profile() {
-  const { user, logout, isPrivate, togglePrivacy } = useAuth();
+  const { user, logout, isPrivate, togglePrivacy, updateProfile } = useAuth();
   const { lang, setLang, voiceGender, setVoiceGender, availableLangs, t } = useLang();
+  const fileInputRef = useRef(null);
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => updateProfile({ avatar: reader.result });
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6">
@@ -16,8 +26,20 @@ export function Profile() {
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-agri-green to-agri-green-dim" />
         <div className="p-4 flex flex-col gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-agri-green/20 border border-agri-green/40 flex items-center justify-center text-3xl">
-              {user?.gender === 'Female' ? '👩🏽‍🌾' : '👨🏽‍🌾'}
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-agri-green/40">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-agri-green/20 flex items-center justify-center text-3xl">
+                    {user?.gender === 'Female' ? '👩🏽‍🌾' : '👨🏽‍🌾'}
+                  </div>
+                )}
+              </div>
+              <button onClick={() => fileInputRef.current?.click()} className="absolute -bottom-1 -right-1 bg-agri-green text-black p-1.5 rounded-full shadow-lg border-2 border-agri-card hover:scale-110 transition-transform">
+                <Camera size={12} />
+              </button>
+              <input type="file" accept="image/*" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" />
             </div>
             <div>
               <div className="text-lg font-bold text-white flex items-center gap-2">
@@ -52,12 +74,12 @@ export function Profile() {
               <div className="flex items-center gap-3 text-sm text-white font-semibold">
                 <Globe className="text-blue-400" size={18} /> {t('app_language')}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-3 gap-2 mt-2">
                 {availableLangs.map(l => (
                   <button 
                     key={l}
                     onClick={() => setLang(l)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${lang === l ? 'bg-agri-green text-black' : 'bg-agri-card2 text-gray-400 border border-white/5'}`}
+                    className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-colors uppercase ${lang === l ? 'bg-agri-green text-black' : 'bg-agri-card2 text-gray-400 border border-white/5'}`}
                   >
                     {l}
                   </button>

@@ -1,35 +1,48 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Newspaper, MessageSquare, TrendingUp, Globe, Volume2, Search, ExternalLink } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
 const CATEGORIES = [
-  { id: 'all', icon: Newspaper, key: 'cat_all' },
-  { id: 'subsidies', icon: TrendingUp, key: 'cat_subsidies' },
-  { id: 'market', icon: TrendingUp, key: 'cat_market' },
-  { id: 'tech', icon: Globe, key: 'cat_tech' },
-];
-
-const MOCK_NEWS = [
-  { id: 1, source: 'X (Gov)', author: '@AgriMinIndia', type: 'subsidies', time: '10m ago', content: 'New PM-Kisan subsidy installments will be released next week. Update your KYC to ensure seamless transfer.', readTime: '1m read', isBreaking: true },
-  { id: 2, source: 'Google News', author: 'Economic Times', type: 'market', time: '1h ago', content: 'Wheat prices surge in Northern Mandis due to unseasonal rain forecasts. Farmers advised to harvest early.', readTime: '3m read', isBreaking: false },
-  { id: 3, source: 'AgriTech Weekly', author: 'TechDesk', type: 'tech', time: '3h ago', content: 'New Drone-as-a-Service launched in Maharashtra for targeted pesticide spraying, cutting costs by 40%.', readTime: '5m read', isBreaking: false },
-  { id: 4, source: 'X (Global)', author: '@FAO', type: 'global', time: '5h ago', content: 'Global fertilizer supply chain stabilizes, bringing down prices for urea and DAP by 15% this quarter.', readTime: '2m read', isBreaking: false },
+  { id: 'all', icon: Newspaper, key: 'cat_all', query: 'agriculture india' },
+  { id: 'subsidies', icon: TrendingUp, key: 'cat_subsidies', query: 'farmer subsidies' },
+  { id: 'market', icon: TrendingUp, key: 'cat_market', query: 'mandi prices' },
+  { id: 'tech', icon: Globe, key: 'cat_tech', query: 'crop tech' },
 ];
 
 export function News() {
   const { t, speak, lang } = useLang();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [newsData, setNewsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredNews = MOCK_NEWS.filter(n => {
-    if (activeCategory !== 'all' && n.type !== activeCategory && n.type !== 'global') return false;
+  // Simulated API fetch acting as Live Sync
+  useEffect(() => {
+    setLoading(true);
+    // In production, this would be: fetch(`https://gnews.io/api/v4/search?q=${category.query}&apikey=YOUR_KEY`)
+    const fetchLiveNews = setTimeout(() => {
+      const mockApiData = [
+        { id: 1, source: 'Reuters Agri', author: 'Global Desk', type: 'global', time: '10m ago', content: 'Global fertilizer supply chain stabilizes, bringing down prices for urea and DAP by 15% this quarter.', readTime: '2m read', isBreaking: true },
+        { id: 2, source: 'DD Kisan', author: 'Gov Updates', type: 'subsidies', time: '1h ago', content: 'New PM-Kisan subsidy installments will be released next week. Update your KYC to ensure seamless transfer.', readTime: '1m read', isBreaking: false },
+        { id: 3, source: 'Times of India', author: 'Market Watch', type: 'market', time: '3h ago', content: 'Wheat prices surge in Northern Mandis due to unseasonal rain forecasts. Farmers advised to harvest early.', readTime: '3m read', isBreaking: false },
+        { id: 4, source: 'AgriTech Weekly', author: 'TechDesk', type: 'tech', time: '5h ago', content: 'New Drone-as-a-Service launched in Maharashtra for targeted pesticide spraying, cutting costs by 40%.', readTime: '5m read', isBreaking: false },
+      ];
+      
+      const categoryFilter = activeCategory === 'all' ? mockApiData : mockApiData.filter(n => n.type === activeCategory || (activeCategory === 'tech' && n.type === 'global'));
+      setNewsData(categoryFilter);
+      setLoading(false);
+    }, 800); // Network latency simulation
+    return () => clearTimeout(fetchLiveNews);
+  }, [activeCategory]);
+
+  const filteredNews = newsData.filter(n => {
     if (searchQuery && !n.content.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
   const handleListen = () => {
-    const breaking = MOCK_NEWS.find(n => n.isBreaking);
+    const breaking = newsData.find(n => n.isBreaking);
     if (breaking) {
       speak(`${t('breaking_news_alert')}: ${breaking.content}`);
     } else {
@@ -42,7 +55,7 @@ export function News() {
       <div className="p-6 pb-2 border-b border-agri-border sticky top-0 bg-agri-bg/90 backdrop-blur-md z-10">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-display font-black text-white">{t('news_hub')}</h1>
-          <button onClick={handleListen} className="flex items-center gap-2 bg-agri-green/10 text-agri-green px-3 py-1.5 rounded-full text-xs font-bold border border-agri-green/30">
+          <button onClick={handleListen} disabled={loading} className="flex items-center gap-2 bg-agri-green/10 text-agri-green px-3 py-1.5 rounded-full text-xs font-bold border border-agri-green/30 disabled:opacity-50">
             <Volume2 size={14} /> {t('listen')}
           </button>
         </div>
@@ -76,7 +89,11 @@ export function News() {
       </div>
 
       <div className="p-4 space-y-4 pb-12 overflow-y-auto">
-        {filteredNews.map((news) => (
+        {loading ? (
+           <div className="flex justify-center py-10">
+              <div className="w-8 h-8 border-4 border-agri-green border-t-transparent rounded-full animate-spin"></div>
+           </div>
+        ) : filteredNews.length > 0 ? filteredNews.map((news) => (
           <div key={news.id} className="bg-agri-card border border-agri-border rounded-2xl p-4 overflow-hidden relative">
             {news.isBreaking && (
               <div className="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-xl uppercase tracking-wider">
@@ -97,7 +114,9 @@ export function News() {
               </button>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="text-center text-gray-500 text-sm mt-10">No articles found.</div>
+        )}
       </div>
     </motion.div>
   );
