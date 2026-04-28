@@ -31,7 +31,7 @@ function AppContent() {
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-agri-green border-t-transparent rounded-full animate-spin"></div>
           <p className="text-agri-green font-bold animate-pulse text-xs uppercase tracking-widest leading-loose text-center">
-            {t('loading_compliance') || 'Checking Compliance Session...'}
+            Checking Compliance Session...
           </p>
         </div>
       </div>
