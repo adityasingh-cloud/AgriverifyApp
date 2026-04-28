@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
-import { motion } from 'framer-motion';
-import { LogOut, Volume2, Globe, Shield, Award, Lock, Unlock, Camera, HelpCircle } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Volume2, Globe, Shield, Award, Lock, Unlock, Camera, HelpCircle, Edit3, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
@@ -8,6 +8,8 @@ export function Profile({ setCurrentTab }) {
   const { user, logout, isPrivate, togglePrivacy, updateProfile } = useAuth();
   const { lang, setLang, voiceGender, setVoiceGender, availableLangs, t } = useLang();
   const fileInputRef = useRef(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ name: user?.name || '', city: user?.city || '', bio: user?.bio || '' });
   
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -18,15 +20,20 @@ export function Profile({ setCurrentTab }) {
     }
   };
 
+  const handleSave = () => {
+    updateProfile(editData);
+    setIsEditing(false);
+  };
+
   const Section = ({ title, icon: Icon, children }) => (
-    <div className="mb-12">
-      <div className="flex items-center gap-3 mb-5 px-3">
+    <div className="mb-10">
+      <div className="flex items-center gap-3 mb-4 px-2">
         <div className="p-2.5 bg-[#F1F8F4] rounded-[12px]">
-          <Icon size={20} className="text-[#1E5128]" />
+          <Icon size={18} className="text-[#1E5128]" />
         </div>
         <div className="text-[11px] font-black text-[#1E5128] uppercase tracking-[0.2em]">{title}</div>
       </div>
-      <div className="bg-white border border-[#1E5128]/10 rounded-[32px] overflow-hidden shadow-sm">
+      <div className="bg-white border border-[#1E5128]/10 rounded-[28px] overflow-hidden shadow-sm">
         {children}
       </div>
     </div>
@@ -34,10 +41,18 @@ export function Profile({ setCurrentTab }) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 pb-40 bg-white min-h-full font-body">
-      <h1 className="text-3xl font-display font-black text-[#1E5128] mb-10">{t('profile_settings')}</h1>
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-3xl font-display font-black text-[#1E5128]">{t('profile_settings')}</h1>
+        <button 
+          onClick={() => setIsEditing(!isEditing)}
+          className={`p-3 rounded-[16px] transition-all ${isEditing ? 'bg-[#FF6F61] text-white' : 'bg-[#F1F8F4] text-[#1E5128]'}`}
+        >
+          {isEditing ? <X size={20} /> : <Edit3 size={20} />}
+        </button>
+      </div>
       
       {/* Profile Card */}
-      <div className="bg-[#F1F8F4] border border-[#1E5128]/10 rounded-[36px] mb-12 relative overflow-hidden shadow-sm">
+      <div className="bg-[#F1F8F4] border border-[#1E5128]/10 rounded-[32px] mb-10 relative overflow-hidden shadow-sm">
         <div className="p-10 flex flex-col items-center">
           <div className="relative mb-6">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl">
@@ -52,11 +67,37 @@ export function Profile({ setCurrentTab }) {
             </button>
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" />
           </div>
-          <div className="text-2xl font-black text-[#1E5128] mb-3">{user?.name}</div>
-          <div className="flex items-center gap-2 bg-[#1E5128] text-white px-5 py-2 rounded-full shadow-lg shadow-[#1E5128]/10">
-            <Award size={16} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('certified_partner')}</span>
-          </div>
+
+          <AnimatePresence mode="wait">
+            {isEditing ? (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="w-full space-y-4">
+                <input 
+                  value={editData.name} 
+                  onChange={e => setEditData({...editData, name: e.target.value})}
+                  className="w-full bg-white border border-[#1E5128]/10 rounded-[16px] px-5 py-3 text-center text-[#1E5128] font-bold outline-none"
+                  placeholder="Your Name"
+                />
+                <input 
+                  value={editData.city} 
+                  onChange={e => setEditData({...editData, city: e.target.value})}
+                  className="w-full bg-white border border-[#1E5128]/10 rounded-[16px] px-5 py-3 text-center text-[#1E5128] font-bold outline-none"
+                  placeholder="City, State"
+                />
+                <button onClick={handleSave} className="w-full bg-[#1E6F6B] text-white py-4 rounded-[16px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                  <Save size={18} /> Save Changes
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center">
+                <div className="text-2xl font-black text-[#1E5128] mb-1">{user?.name}</div>
+                <div className="text-sm text-[#2D2D2D] opacity-40 font-bold mb-4">{user?.city || 'India'}</div>
+                <div className="flex items-center gap-2 bg-[#1E5128] text-white px-5 py-2 rounded-full shadow-lg shadow-[#1E5128]/10">
+                  <Award size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('certified_partner')}</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
