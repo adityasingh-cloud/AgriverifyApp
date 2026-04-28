@@ -12,10 +12,10 @@ function AppContent() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) {
-        console.warn("Auth check taking too long, triggering safety timeout.");
+        console.warn("Auth check taking too long (10s), triggering safety timeout.");
         setSafetyTimeout(true);
       }
-    }, 5000);
+    }, 10000);
     return () => clearTimeout(timer);
   }, [loading]);
   
