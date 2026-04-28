@@ -12,10 +12,10 @@ export default {
           "green-dim": "#16a34a",
           "green-glow": "rgba(34,197,94,0.25)",
           yellow: "#facc15",
-          bg: "#0a0a0a",
-          card: "#141414",
-          card2: "#1a1a1a",
-          border: "rgba(255,255,255,0.07)"
+          bg: "#f8faf7",
+          card: "#ffffff",
+          card2: "#f3f6f2",
+          border: "rgba(0,0,0,0.05)"
         }
       },
       fontFamily: {
