@@ -1,90 +1,59 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-const safeJSONParse = (key, fallback) => {
-  try {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : fallback;
-  } catch (e) {
-    console.warn(`Error parsing ${key} from localStorage`, e);
-    return fallback;
-  }
-};
-
 export function AuthProvider({ children }) {
-  // DEMO MODE: Static User Data
   const [user, setUser] = useState({
-    uid: 'demo-user-123',
-    name: 'Demo User',
-    email: 'demo@agriverify.com',
-    city: 'Kolkata',
-    state: 'WB',
-    avatar: 'https://ui-avatars.com/api/?name=Demo+User&background=22c55e&color=fff',
-    isNew: false,
-    followersCount: 124,
-    followingCount: 89,
-    isPrivate: false,
-    gender: 'Male'
+    uid: 'demo-123',
+    name: 'Farmer Aditya',
+    email: 'adityasinghvoid0009@gmail.com',
+    gender: 'Male',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Agri',
+    followers: 1254,
+    followingCount: 89
   });
 
-  const [loading] = useState(false);
-  const [posts, setPosts] = useState([
-    { id: '1', user: 'Farmer Aman', content: 'Great harvest this year! 🌾', location: 'Punjab', likes: 24, createdAt: Date.now() - 1000000, avatar: 'https://ui-avatars.com/api/?name=Aman&background=random' },
-    { id: '2', user: 'AgriTech', content: 'New sensor data looking promising.', location: 'Gujarat', likes: 15, createdAt: Date.now() - 2000000, avatar: 'https://ui-avatars.com/api/?name=Agri&background=random' }
-  ]);
-  
-  const [scans, setScans] = useState(() => safeJSONParse('agriverify_scans', []));
+  const [scans, setScans] = useState(() => {
+    const saved = localStorage.getItem('agriverify_scans');
+    return saved ? JSON.parse(saved) : [];
+  });
 
-  // MOCK ACTIONS
-  const login = () => {};
-  const logout = () => window.location.reload();
-  
-  const completeProfile = async () => {};
-  const updateProfile = async (updates) => setUser(prev => ({ ...prev, ...updates }));
-  const togglePrivacy = () => setUser(prev => ({ ...prev, isPrivate: !prev.isPrivate }));
-  
-  const addPost = async (postData) => {
-    const newPost = {
-      id: Date.now().toString(),
-      user: user.name,
-      avatar: user.avatar,
-      location: `${user.city}, ${user.state}`,
-      likes: 0,
-      createdAt: Date.now(),
-      ...postData
-    };
-    setPosts(prev => [newPost, ...prev]);
-  };
+  const [posts, setPosts] = useState([
+    { id: 1, user: "Rajesh Kumar", content: "Great harvest this season! Verified Grade A wheat ready for transport.", location: "Punjab", likes: 24, avatar: "https://i.pravatar.cc/150?u=1" },
+    { id: 2, user: "Sita Devi", content: "Organic farming pays off. My rice batch got a 92/100 quality score.", location: "Bihar", likes: 56, avatar: "https://i.pravatar.cc/150?u=2" }
+  ]);
 
   const addScan = (scanData) => {
-    const updated = [scanData, ...scans];
-    setScans(updated);
-    try {
-      localStorage.setItem('agriverify_scans', JSON.stringify(updated));
-    } catch (e) {
-      console.warn("Failed to save scan to localStorage", e);
-    }
+    const newScans = [scanData, ...scans];
+    setScans(newScans);
+    localStorage.setItem('agriverify_scans', JSON.stringify(newScans));
   };
 
-  const getAuthToken = async () => "demo-token";
+  const logout = () => {
+    console.log("Mock Logout triggered");
+    // In demo mode, we just keep the user logged in
+  };
+
+  const updateProfile = (data) => {
+    setUser(prev => ({ ...prev, ...data }));
+  };
+
+  const togglePrivacy = () => {};
+  const addPost = (post) => {
+    setPosts(prev => [{ id: Date.now(), ...post, user: user.name, likes: 0 }, ...prev]);
+  };
+  const toggleLike = (id) => {};
+  const toggleFollow = (id) => {};
+  const searchUsers = () => {};
+  const addComment = () => {};
+  const fetchComments = () => {};
 
   return (
-    <AuthContext.Provider value={{
-      user, loading,
-      login, logout, completeProfile, updateProfile,
-      scans, addScan,
-      posts, addPost,
-      toggleLike: (id) => setPosts(prev => prev.map(p => p.id === id ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 } : p)),
-      togglePrivacy, following: [], toggleFollow: async () => {}, 
-      socialGraph: {
-        'user-1': { name: 'Vikram Singh', city: 'Amritsar', state: 'Punjab', avatar: 'https://ui-avatars.com/api/?name=Vikram+Singh&background=random' },
-        'user-2': { name: 'Priya Sharma', city: 'Jaipur', state: 'Rajasthan', avatar: 'https://ui-avatars.com/api/?name=Priya+Sharma&background=random' },
-        'user-3': { name: 'Rahul Verma', city: 'Pune', state: 'Maharashtra', avatar: 'https://ui-avatars.com/api/?name=Rahul+Verma&background=random' }
-      }, 
-      searchUsers: () => {}, followersCount: 124,
-      comments: {}, addComment: async () => {}, fetchComments: () => {},
-      getAuthToken
+    <AuthContext.Provider value={{ 
+      user, scans, posts, addScan, logout, updateProfile, 
+      isPrivate: false, togglePrivacy, addPost, toggleLike, 
+      following: [], toggleFollow, socialGraph: {}, searchUsers, 
+      comments: {}, addComment, fetchComments 
     }}>
       {children}
     </AuthContext.Provider>

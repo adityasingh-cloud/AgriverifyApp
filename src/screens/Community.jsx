@@ -87,7 +87,7 @@ export function Community() {
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
                     placeholder="Share your certified batch or update..."
-                    className="w-full bg-transparent border-none outline-none text-sm text-black font-medium resize-none h-16 placeholder-gray-400"
+                    className="w-full bg-transparent border-none outline-none text-base text-[#0056B3] font-medium resize-none h-16 placeholder-gray-400"
                   />
                   {selectedImage && (
                     <div className="relative inline-block mt-3">

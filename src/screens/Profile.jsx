@@ -32,7 +32,7 @@ export function Profile({ setCurrentTab }) {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 relative bg-agri-bg min-h-full">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 relative text-[#0056B3] min-h-full">
       <h1 className="text-3xl font-display font-black text-black mb-8">{t('profile_settings')}</h1>
       
       <div className="bg-white border-2 border-black/5 rounded-[28px] mb-10 relative overflow-hidden shadow-2xl shadow-gray-200/20">
