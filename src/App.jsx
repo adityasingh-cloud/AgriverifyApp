@@ -33,7 +33,7 @@ function AppContent() {
         <h2 className="text-xl font-bold text-white mb-2">Connection Timeout</h2>
         <p className="text-gray-400 text-sm mb-8">Trouble connecting to servers. Tap below to retry.</p>
         <button
-          onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.reload(); }}
+          onClick={() => { localStorage.clear(); window.location.reload(); }}
           className="bg-agri-green text-black px-8 py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition"
         >
           🔄 Retry

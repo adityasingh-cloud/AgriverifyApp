@@ -90,9 +90,10 @@ export function AuthProvider({ children }) {
   const completeProfile = async (formData) => {
     // Use uid from React state — never rely on auth.currentUser which can
     // momentarily be null during Firebase token refresh cycles.
-    const uid = user?.uid;
+    const uid = user?.uid || auth.currentUser?.uid;
     if (!uid) {
-      alert('Your session could not be found. Please sign in again.');
+      console.error("Session Check Failed. User State:", user, "Auth CurrentUser:", auth.currentUser);
+      alert('Your session could not be found. Please try logging in again. (Reason: No UID)');
       return;
     }
     setLoading(true);
