@@ -4,6 +4,15 @@ import { LogOut, Volume2, Globe, Shield, Award, Lock, Unlock, Camera, HelpCircle
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
+const LANG_LABELS = {
+  en: '🇬🇧 English',
+  hi: '🇮🇳 हिन्दी',
+  bn: '🇧🇩 বাংলা',
+  mr: '🇮🇳 मराठी',
+  te: '🇮🇳 తెలుగు',
+  pa: '🇮🇳 ਪੰਜਾਬੀ',
+};
+
 const Section = ({ title, icon: Icon, children }) => (
   <div className="mb-10">
     <div className="flex items-center gap-3 mb-4 px-2">
@@ -153,6 +162,60 @@ export function Profile({ setCurrentTab }) {
             <X className="rotate-45" size={20} />
           </div>
         </button>
+      </div>
+
+      {/* Language & Voice Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-4 px-2">
+          <div className="p-2.5 bg-white rounded-[12px] shadow-sm">
+            <Globe size={18} className="text-[#1E5128]" />
+          </div>
+          <div className="text-[11px] font-black text-[#1E5128] uppercase tracking-[0.2em]">{t('app_language')}</div>
+        </div>
+        <div className="bg-white border border-[#1E5128]/10 rounded-[28px] overflow-hidden shadow-sm">
+          <div className="p-6 border-b border-gray-50">
+            <div className="grid grid-cols-2 gap-3">
+              {availableLangs.map(l => (
+                <button
+                  key={l}
+                  onClick={() => setLang(l)}
+                  className={`flex items-center gap-3 px-4 py-4 rounded-[18px] text-sm font-black transition-all ${
+                    lang === l
+                      ? 'bg-[#1E5128] text-white shadow-xl shadow-[#1E5128]/20'
+                      : 'bg-[#F0F7FF] text-[#1E5128] border border-[#1E5128]/5'
+                  }`}
+                >
+                  <span className="text-lg">{LANG_LABELS[l]?.split(' ')[0]}</span>
+                  <span className="text-[11px] truncate">{LANG_LABELS[l]?.split(' ').slice(1).join(' ')}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Volume2 size={22} className="text-[#1E6F6B]" />
+              <div>
+                <div className="text-sm font-black text-[#1E5128] uppercase tracking-widest">{t('ai_voice')}</div>
+                <div className="text-[10px] text-[#2D2D2D] opacity-40 font-bold">Voice Assistant</div>
+              </div>
+            </div>
+            <div className="flex bg-[#F0F7FF] rounded-[16px] p-1.5">
+              {['Male', 'Female'].map(g => (
+                <button
+                  key={g}
+                  onClick={() => setVoiceGender(g)}
+                  className={`px-5 py-2.5 rounded-[12px] text-[10px] font-black transition-all ${
+                    voiceGender === g
+                      ? 'bg-[#1E6F6B] text-white shadow-lg'
+                      : 'text-[#1E5128] opacity-40'
+                  }`}
+                >
+                  {g === 'Male' ? '👨 Male' : '👩 Female'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
