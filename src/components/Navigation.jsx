@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Users, Newspaper, User, Camera, Bot } from 'lucide-react';
+import { Home, Users, Newspaper, User, Camera } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 
 export function Navigation({ currentTab, setCurrentTab, onCameraClick }) {
@@ -18,7 +18,7 @@ export function Navigation({ currentTab, setCurrentTab, onCameraClick }) {
         </button>
       </div>
 
-      <NavItem icon={<Bot size={24} />} label="AI" active={currentTab === 'support'} onClick={() => setCurrentTab('support')} />
+      <NavItem icon={<Newspaper size={24} />} label={t('news')} active={currentTab === 'news'} onClick={() => setCurrentTab('news')} />
       <NavItem icon={<User size={24} />} label={t('profile')} active={currentTab === 'profile'} onClick={() => setCurrentTab('profile')} />
     </div>
   );

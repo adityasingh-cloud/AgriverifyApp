@@ -1,10 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Volume2, Globe, Shield, Award, Lock, Unlock, Camera, HelpCircle, Edit3, Save, X, User as UserIcon, Calendar, MapPin, Phone, Mail } from 'lucide-react';
+import { LogOut, Volume2, Globe, Shield, Award, Lock, Unlock, Camera, HelpCircle, Edit3, Save, X, User as UserIcon, Calendar, MapPin, Phone, Mail, Bot, Headset } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 
-// Define components outside to prevent focus loss during state updates
 const Section = ({ title, icon: Icon, children }) => (
   <div className="mb-10">
     <div className="flex items-center gap-3 mb-4 px-2">
@@ -53,12 +52,10 @@ export function Profile({ setCurrentTab }) {
   const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   
-  // Local state for editing to ensure smooth input
   const [editData, setEditData] = useState({ 
     name: '', city: '', state: '', dob: '', phone: '', email: ''
   });
 
-  // Sync editData when entering edit mode
   useEffect(() => {
     if (isEditing) {
       setEditData({
@@ -89,12 +86,12 @@ export function Profile({ setCurrentTab }) {
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
       logout();
-      window.location.reload(); // Hard reset for demo
+      window.location.reload();
     }
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 pb-40 min-h-full font-body">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 pb-40 min-h-full font-body bg-[#F0F7FF]">
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-3xl font-display font-black text-[#1E5128]">{t('profile_settings')}</h1>
         <button 
@@ -106,7 +103,7 @@ export function Profile({ setCurrentTab }) {
         </button>
       </div>
       
-      {/* Profile Card */}
+      {/* Profile Header Card */}
       <div className="bg-white border border-[#1E5128]/10 rounded-[36px] mb-10 relative overflow-hidden shadow-xl shadow-blue-900/5">
         <div className="absolute top-0 left-0 w-full h-2 bg-[#1E5128]" />
         <div className="p-10 flex flex-col items-center">
@@ -131,6 +128,33 @@ export function Profile({ setCurrentTab }) {
         </div>
       </div>
 
+      {/* AI Assistant / Customer Care Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-4 px-2">
+          <div className="p-2.5 bg-white rounded-[12px] shadow-sm">
+            <Headset size={18} className="text-[#1E6F6B]" />
+          </div>
+          <div className="text-[11px] font-black text-[#1E5128] uppercase tracking-[0.2em]">Customer Care</div>
+        </div>
+        <button 
+          onClick={() => setCurrentTab('support')}
+          className="w-full bg-[#1E6F6B] text-white p-6 rounded-[28px] flex items-center justify-between shadow-xl shadow-[#1E6F6B]/20 active:scale-[0.98] transition-all"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <Bot size={28} />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-black uppercase tracking-widest">AI Assistant</div>
+              <div className="text-[10px] opacity-60 font-bold">Ask anything about AgriVerify</div>
+            </div>
+          </div>
+          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+            <X className="rotate-45" size={20} />
+          </div>
+        </button>
+      </div>
+
       <AnimatePresence mode="wait">
         {isEditing ? (
           <motion.div 
@@ -150,9 +174,6 @@ export function Profile({ setCurrentTab }) {
               <button onClick={handleSave} className="w-full bg-[#1E6F6B] text-white py-4 rounded-[16px] font-black uppercase tracking-[0.1em] shadow-lg shadow-[#1E6F6B]/20">
                 Confirm Profile Update
               </button>
-              <button onClick={() => setIsEditing(false)} className="w-full text-[#FF6F61] font-black uppercase tracking-widest text-[9px] mt-4 opacity-60">
-                Cancel Changes
-              </button>
             </div>
           </motion.div>
         ) : (
@@ -166,25 +187,9 @@ export function Profile({ setCurrentTab }) {
         )}
       </AnimatePresence>
 
-      <Section title={t('app_language')} icon={Globe}>
-        <div className="p-6 border-b border-gray-50">
-          <div className="grid grid-cols-3 gap-4">
-            {availableLangs.map(l => (
-              <button 
-                key={l}
-                onClick={() => setLang(l)}
-                className={`px-3 py-4 rounded-[18px] text-xs font-black transition-all uppercase ${lang === l ? 'bg-[#1E5128] text-white shadow-xl shadow-[#1E5128]/20' : 'bg-gray-50 text-[#1E5128] opacity-40 border border-gray-100'}`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Section>
-
       <button 
         onClick={handleLogout}
-        className="w-full p-8 bg-white border border-[#1E5128]/10 rounded-[32px] flex items-center justify-center gap-4 text-sm text-[#FF6F61] font-black uppercase tracking-widest shadow-xl shadow-red-900/5 hover:bg-red-50 transition-all"
+        className="w-full p-8 bg-white border border-[#1E5128]/10 rounded-[32px] flex items-center justify-center gap-4 text-sm text-[#FF6F61] font-black uppercase tracking-widest shadow-xl shadow-red-900/5"
       >
         <LogOut size={22} /> {t('secure_logout')}
       </button>
