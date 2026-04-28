@@ -12,8 +12,8 @@ export function Layout() {
   const [showCamera, setShowCamera] = useState(false);
 
   return (
-    <div className="h-screen w-screen bg-agri-bg flex flex-col relative overflow-hidden">
-      <div className="flex-1 overflow-y-auto hide-scrollbar pb-24">
+    <div className="h-full w-full bg-agri-bg flex flex-col relative overflow-hidden pb-[env(safe-area-inset-bottom)]">
+      <div className="flex-1 overflow-y-auto hide-scrollbar pb-24 touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
         {currentTab === 'dashboard' && <Dashboard />}
         {currentTab === 'community' && <Community />}
         {currentTab === 'news' && <News />}

@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, RefreshCw, Download, Share2 } from 'lucide-react';
+import { X, RefreshCw, Download, Share2, Camera as CameraIcon } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { jsPDF } from 'jspdf';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
+import { storage, ref, uploadString, getDownloadURL } from '../firebase';
 
 export function CameraFlow({ onClose }) {
   const { t, speakSlowly } = useLang();
@@ -16,51 +17,13 @@ export function CameraFlow({ onClose }) {
     { id: 'bottom', label: t('camera_bottom'), icon: '⬇️', desc: t('camera_bottom_desc') },
   ];
 
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const streamRef = useRef(null);
+  const fileInputRef = useRef(null);
   const qrRef = useRef(null);
   
   const [step, setStep] = useState(0); 
   const [processingProgress, setProcessingProgress] = useState(0);
   const [photos, setPhotos] = useState([]);
   const [resultData, setResultData] = useState(null);
-
-  useEffect(() => {
-    startCamera();
-    return () => stopCamera();
-  }, []);
-
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      streamRef.current = stream;
-    } catch (err) {
-      console.error("Camera access denied", err);
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      return canvas.toDataURL('image/jpeg', 0.8);
-    }
-    return null;
-  };
 
   const generateHash = (score) => {
     const cropID = "20";
@@ -75,50 +38,86 @@ export function CameraFlow({ onClose }) {
     return `${cropID}${grade}${dateCode}${randomID}`;
   };
 
-  const handleCapture = () => {
-    const photo = capturePhoto();
-    const newPhotos = [...photos, photo];
-    setPhotos(newPhotos);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const photoData = reader.result;
+        const newPhotos = [...photos, photoData];
+        setPhotos(newPhotos);
 
-    if (step < 2) {
-      setStep(step + 1);
-    } else {
-      stopCamera();
-      setStep(3);
-      simulateProcessing(newPhotos);
+        if (step < 2) {
+          setStep(step + 1);
+        } else {
+          setStep(3);
+          processAndUpload(newPhotos);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const simulateProcessing = (capturedPhotos) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 5;
-      setProcessingProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        
-        const score = 88;
-        const hash = generateHash(score);
-        const data = {
-          hash,
-          crop: "Wheat",
-          grade: "GOLD",
-          score,
-          moisture: "11.2%",
-          shelfLife: "8 Months",
-          date: new Date().toLocaleDateString(),
-          photos: capturedPhotos
-        };
-        
-        setResultData(data);
-        addScan(data);
+  const triggerCamera = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
-        setTimeout(() => {
-          setStep(4);
-          speakSlowly("Verification complete. Your code is", hash);
-        }, 500);
+  const processAndUpload = async (capturedPhotos) => {
+    try {
+      // Start processing UI immediately
+      setProcessingProgress(10);
+      
+      const uid = user?.uid || 'guest';
+      const timestamp = Date.now();
+      const uploadedUrls = [];
+
+      for (let i = 0; i < capturedPhotos.length; i++) {
+        // Mock progression for UI while uploading
+        setProcessingProgress(20 + (i * 20));
+        
+        try {
+          // Attempt Firebase Storage Upload
+          const storageRef = ref(storage, `scans/${uid}/${timestamp}_${ANGLES[i].id}.jpg`);
+          await uploadString(storageRef, capturedPhotos[i], 'data_url');
+          const downloadUrl = await getDownloadURL(storageRef);
+          uploadedUrls.push(downloadUrl);
+        } catch (uploadError) {
+          console.warn("Storage upload failed, falling back to local base64.", uploadError);
+          uploadedUrls.push(capturedPhotos[i]); // Fallback
+        }
       }
-    }, 100);
+
+      setProcessingProgress(90);
+
+      const score = 88;
+      const hash = generateHash(score);
+      const data = {
+        hash,
+        crop: "Wheat",
+        grade: "GOLD",
+        score,
+        moisture: "11.2%",
+        shelfLife: "8 Months",
+        date: new Date().toLocaleDateString(),
+        photos: uploadedUrls
+      };
+      
+      setResultData(data);
+      addScan(data);
+      setProcessingProgress(100);
+
+      setTimeout(() => {
+        setStep(4);
+        speakSlowly("Verification complete. Your code is", hash);
+      }, 500);
+
+    } catch (e) {
+      console.error(e);
+      alert("An error occurred during verification.");
+      onClose();
+    }
   };
 
   const generatePDF = () => {
@@ -153,17 +152,6 @@ export function CameraFlow({ onClose }) {
       doc.text(`${idx + 1}. ${chk}`, 20, 155 + (idx * 6));
     });
 
-    if (resultData.photos && resultData.photos.length === 3) {
-      doc.addPage();
-      doc.setFontSize(16);
-      doc.text("Visual Evidence (Top, Side, Bottom)", 20, 20);
-      try {
-        doc.addImage(resultData.photos[0], 'JPEG', 20, 30, 80, 80);
-        doc.addImage(resultData.photos[1], 'JPEG', 110, 30, 80, 80);
-        doc.addImage(resultData.photos[2], 'JPEG', 65, 120, 80, 80);
-      } catch (e) {}
-    }
-
     doc.save(`AgriVerify_Certificate_${resultData.hash}.pdf`);
   };
 
@@ -178,50 +166,61 @@ export function CameraFlow({ onClose }) {
       comments: 0,
       isLiked: false,
       image: resultData.photos[0],
-      userId: 'currentUser'
+      userId: user?.uid || 'currentUser'
     });
     alert("Successfully shared to AgriSocial!");
     onClose();
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} className="fixed inset-0 z-50 bg-black flex flex-col">
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+    <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} className="fixed inset-0 z-[60] bg-agri-bg flex flex-col pb-[env(safe-area-inset-bottom)]">
+      {/* Hidden Native Camera Input */}
+      <input 
+        type="file" 
+        accept="image/*" 
+        capture="environment" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+      />
       
-      <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-10 bg-gradient-to-b from-black/80 to-transparent">
-        <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+      <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-10 bg-gradient-to-b from-agri-bg to-transparent">
+        <button onClick={onClose} className="w-10 h-10 rounded-full bg-agri-card border border-agri-border flex items-center justify-center text-white backdrop-blur-md">
           <X size={20} />
         </button>
         {step < 3 && (
           <div className="flex gap-2">
             {ANGLES.map((a, i) => (
-              <div key={a.id} className={`w-8 h-2 rounded-full transition-colors ${i <= step ? 'bg-agri-green' : 'bg-white/20'}`} />
+              <div key={a.id} className={`w-8 h-2 rounded-full transition-colors ${i <= step ? 'bg-agri-green' : 'bg-white/10'}`} />
             ))}
           </div>
         )}
       </div>
 
       {step < 3 ? (
-        <div className="flex-1 relative flex flex-col justify-end pb-12">
-          <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div className="w-[70%] aspect-square border-2 border-dashed border-agri-green rounded-3xl relative shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]">
-              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-agri-green/50 shadow-[0_0_15px_rgba(34,197,94,1)] animate-pulse" />
-            </div>
-            <div className="mt-8 bg-black/60 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 flex items-center gap-3">
-              <span className="text-2xl">{ANGLES[step].icon}</span>
-              <div>
-                <div className="text-white font-bold text-sm">{ANGLES[step].label}</div>
-                <div className="text-gray-300 text-xs">{ANGLES[step].desc}</div>
-              </div>
-            </div>
+        <div className="flex-1 relative flex flex-col justify-center items-center px-6">
+          <div className="mb-12 text-center mt-20">
+            <h2 className="text-3xl font-display font-black text-white mb-2">{ANGLES[step].label}</h2>
+            <p className="text-gray-400">{ANGLES[step].desc}</p>
           </div>
+
+          <button 
+            onClick={triggerCamera} 
+            className="w-48 h-48 rounded-full border-4 border-dashed border-agri-green/50 flex flex-col items-center justify-center bg-agri-green/5 hover:bg-agri-green/10 transition-colors shadow-[0_0_50px_rgba(34,197,94,0.1)] group"
+          >
+            <div className="w-20 h-20 bg-agri-green rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <CameraIcon size={32} color="black" />
+            </div>
+            <span className="text-white font-bold text-sm tracking-wider uppercase">Open Camera</span>
+          </button>
           
-          <div className="relative z-10 flex justify-center w-full px-8 pb-8">
-            <button onClick={handleCapture} className="w-20 h-20 rounded-full border-4 border-agri-green flex items-center justify-center bg-black/20 backdrop-blur-md hover:scale-95 transition-transform">
-              <div className="w-16 h-16 rounded-full bg-white" />
-            </button>
-          </div>
+          {photos.length > 0 && (
+             <div className="flex gap-2 mt-12">
+               {photos.map((p, i) => (
+                 <img key={i} src={p} className="w-16 h-16 rounded-xl border-2 border-agri-green object-cover" />
+               ))}
+             </div>
+          )}
         </div>
       ) : step === 3 ? (
         <div className="flex-1 bg-agri-bg flex flex-col items-center justify-center p-8 text-center">
@@ -231,10 +230,10 @@ export function CameraFlow({ onClose }) {
             <span className="text-4xl">🔬</span>
           </div>
           <h2 className="text-2xl font-display font-black text-white mb-2">{t('processing')}</h2>
-          <p className="text-gray-400 text-sm mb-8">{t('securing')}</p>
+          <p className="text-gray-400 text-sm mb-8">Uploading directly to Secure Storage...</p>
           
           <div className="w-full max-w-xs bg-agri-card h-2 rounded-full overflow-hidden">
-            <motion.div className="h-full bg-agri-green" initial={{ width: 0 }} animate={{ width: `${processingProgress}%` }} />
+            <motion.div className="h-full bg-agri-green transition-all duration-300" style={{ width: `${processingProgress}%` }} />
           </div>
           <div className="text-agri-green font-bold mt-2">{processingProgress}%</div>
         </div>

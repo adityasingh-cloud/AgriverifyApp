@@ -9,8 +9,12 @@
     @apply bg-agri-bg text-white font-body;
     margin: 0;
     padding: 0;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
     overflow: hidden; /* Full-screen constraint */
-    touch-action: pan-y;
+    overscroll-behavior: none;
+    touch-action: none; /* Prevent all browser native touch scrolling on the root level */
   }
 }
 
