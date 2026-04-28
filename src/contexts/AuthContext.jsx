@@ -1,12 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { db, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
+import { db, auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const { user: auth0User, isAuthenticated, isLoading: auth0Loading, loginWithRedirect, logout: auth0Logout, getAccessTokenSilently } = useAuth0();
-  
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -18,33 +15,29 @@ export function AuthProvider({ children }) {
   const [scans, setScans] = useState([]);
 
   useEffect(() => {
-    if (auth0Loading) return;
-
-    const syncUser = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
-      if (isAuthenticated && auth0User) {
-        // Sync with Firestore using Auth0 sub as ID
-        const userDoc = await getDoc(doc(usersRef, auth0User.sub));
+      if (firebaseUser) {
+        const userDoc = await getDoc(doc(usersRef, firebaseUser.uid));
         if (userDoc.exists()) {
-          setUser(userDoc.data());
-          setupRealtimeListeners(auth0User.sub);
+          const userData = userDoc.data();
+          setUser({ ...userData, isNew: false });
+          setupRealtimeListeners(firebaseUser.uid);
         } else {
-          // Trigger Onboarding (user exists in Auth0 but not in Firestore)
-          setUser({ uid: auth0User.sub, email: auth0User.email, isNew: true });
+          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, isNew: true });
           setLoading(false);
         }
       } else {
         setUser(null);
         setLoading(false);
       }
-    };
+    });
 
-    syncUser();
-    
     const savedScans = localStorage.getItem('agriverify_scans');
     if (savedScans) setScans(JSON.parse(savedScans));
 
-  }, [isAuthenticated, auth0User, auth0Loading]);
+    return () => unsubscribe();
+  }, []);
 
   const setupRealtimeListeners = (uid) => {
     try {
@@ -66,55 +59,54 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return () => { unsubPosts(); unsubFollowing(); unsubFollowers(); };
     } catch (e) {
-      console.warn("Realtime listeners failed:", e);
+      console.warn("Realtime listeners failed", e);
       setLoading(false);
     }
   };
 
-  const login = async () => {
-    await loginWithRedirect({
-      authorizationParams: {
-        connection: 'email' // For Passwordless Email OTP if configured in Auth0
-      }
-    });
-  };
-
-  const logout = () => {
-    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
-    setUser(null);
-    setPosts([]);
-    setFollowing([]);
+  const loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Google Auth Failed", error);
+      alert("Google Sign-In failed.");
+    }
   };
 
   const completeProfile = async (formData) => {
-    if (!auth0User?.sub) return;
+    if (!auth.currentUser) return;
     setLoading(true);
 
     try {
+      const uid = auth.currentUser.uid;
       const finalUser = {
         ...formData,
-        uid: auth0User.sub,
-        email: auth0User.email || '',
-        avatar: formData.avatar || auth0User.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
+        uid,
+        email: auth.currentUser.email || '',
+        avatar: formData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1e293b&color=fff`,
         nameLowerCase: formData.name.toLowerCase(),
         isPrivate: false,
         followersCount: 0,
         followingCount: 0,
-        // CRITICAL: isNew MUST be undefined or false to trigger redirect
       };
       
-      // Save to Firestore using Auth0 sub as document ID
-      await setDoc(doc(usersRef, auth0User.sub), finalUser);
-      
-      // Update local state and trigger setup
-      setUser(finalUser);
-      setupRealtimeListeners(auth0User.sub);
+      await setDoc(doc(usersRef, uid), finalUser);
+      setUser({ ...finalUser, isNew: false }); // Force redirect by setting isNew to false
+      setupRealtimeListeners(uid);
     } catch (error) {
-      console.error("Onboarding failed:", error);
-      alert("Failed to save profile. Please try again.");
+      console.error("Complete Profile error:", error);
+      alert("Failed to save profile.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const logout = () => {
+    signOut(auth).then(() => {
+      setUser(null);
+      setPosts([]);
+      setFollowing([]);
+    });
   };
 
   const updateProfile = async (updates) => {
@@ -205,21 +197,12 @@ export function AuthProvider({ children }) {
     localStorage.setItem('agriverify_scans', JSON.stringify(newScans));
   };
 
-  const getAuthToken = async () => {
-    try {
-      return await getAccessTokenSilently();
-    } catch (e) {
-      console.error("Token fetch failed", e);
-      return null;
-    }
-  };
-
   return (
     <AuthContext.Provider value={{ 
-      user, login, completeProfile, logout, updateProfile, scans, addScan, 
-      posts, addPost, loading: loading || auth0Loading,
+      user, loginWithGoogle, completeProfile, logout, updateProfile, scans, addScan, 
+      posts, addPost, loading,
       togglePrivacy, following, toggleFollow, socialGraph, searchUsers, followersCount,
-      comments, addComment, fetchComments, getAuthToken
+      comments, addComment, fetchComments
     }}>
       {children}
     </AuthContext.Provider>
