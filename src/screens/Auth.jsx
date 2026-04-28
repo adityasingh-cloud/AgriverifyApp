@@ -5,7 +5,7 @@ import { useLang } from '../contexts/LangContext';
 import { Phone, Mail, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 
 export function Auth() {
-  const { loginWithGoogle, completeProfile, user, loading } = useAuth();
+  const { loginWithGoogle, loginWithPhone, completeProfile, user, loading } = useAuth();
   const { t } = useLang();
 
   // step: 1 = choose method, 2 = phone entry, 3 = OTP, 4 = profile form
@@ -31,16 +31,20 @@ export function Auth() {
     setStep(3);
   };
 
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (otp.length < 4) { alert('Enter the OTP'); return; }
     setVerifying(true);
-    // Simulate OTP verify – replace with Firebase Phone Auth when live key is ready
-    setTimeout(() => {
+    try {
+      // Create a real Firebase anonymous session so the profile form has a uid
+      await loginWithPhone();
       setForm(p => ({ ...p, phone: `+91 ${phone}` }));
-      setVerifying(false);
       setStep(4);
-    }, 1500);
+    } catch {
+      // loginWithPhone already alerts the user
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const handleComplete = async (e) => {

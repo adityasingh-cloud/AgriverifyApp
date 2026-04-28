@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
+import { auth, googleProvider, signInWithPopup, signInAnonymously, signOut, onAuthStateChanged, usersRef, postsRef, followersRef, commentsRef, doc, setDoc, getDoc, onSnapshot, query, where, addDoc, orderBy, deleteDoc, updateDoc, increment } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -71,6 +71,19 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error('Google Sign-In error:', err);
       alert('Google Sign-In failed: ' + err.message);
+    }
+  };
+
+  // Phone OTP is simulated — create an anonymous Firebase session so the
+  // profile form has a real uid to save against in Firestore.
+  const loginWithPhone = async () => {
+    try {
+      await signInAnonymously(auth);
+      // onAuthStateChanged will fire → sets user = { uid, isNew: true }
+    } catch (err) {
+      console.error('Anonymous sign-in error:', err);
+      alert('Could not start phone session: ' + err.message);
+      throw err;
     }
   };
 
@@ -206,7 +219,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, loading,
-      loginWithGoogle, completeProfile, logout, updateProfile,
+      loginWithGoogle, loginWithPhone, completeProfile, logout, updateProfile,
       scans, addScan,
       posts, addPost,
       togglePrivacy, following, toggleFollow, socialGraph, searchUsers, followersCount,

@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy, deleteDoc } from "firebase/firestore";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, signOut, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSy_MOCK_API_KEY_PLEASE_REPLACE",
@@ -22,4 +22,4 @@ export const postsRef = collection(db, "posts");
 export const commentsRef = collection(db, "comments");
 export const followersRef = collection(db, "followers");
 
-export { doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy, deleteDoc, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged };
+export { doc, setDoc, getDoc, getDocs, onSnapshot, query, where, updateDoc, increment, addDoc, orderBy, deleteDoc, signInWithPopup, signInWithRedirect, signInAnonymously, signOut, onAuthStateChanged };
